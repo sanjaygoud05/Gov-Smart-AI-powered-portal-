@@ -10,6 +10,8 @@ import Auth from './pages/Auth';
 import HowItWorks from './pages/HowItWorks';
 import FAQs from './pages/FAQs';
 import Settings from './pages/Settings';
+import SavedSchemes from './pages/SavedSchemes';
+import Dashboard from './pages/Dashboard';
 import ChatWidget from './components/ChatWidget';
 
 // Helper to scroll to top on route change
@@ -30,6 +32,8 @@ const App: React.FC = () => {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/saved-schemes" element={<SavedSchemes />} />
             <Route path="/find-schemes" element={<FindSchemes />} />
             <Route path="/scheme/:id" element={<SchemeDetails />} />
             <Route path="/auth" element={<Auth />} />

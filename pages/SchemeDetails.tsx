@@ -1,13 +1,21 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Share2, Calendar, Building2, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Share2, Calendar, Building2, CheckCircle2, ExternalLink, Bookmark, BookmarkCheck } from 'lucide-react';
 import { MOCK_SCHEMES } from '../constants';
 
 const SchemeDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const scheme = MOCK_SCHEMES.find(s => s.id === id);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      const saved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
+      setIsSaved(saved.includes(id));
+    }
+  }, [id]);
 
   if (!scheme) {
     return (
@@ -24,6 +32,25 @@ const SchemeDetails: React.FC = () => {
     window.open('https://india.gov.in', '_blank');
   };
 
+  const toggleSave = () => {
+    const savedUser = localStorage.getItem('gov_smart_user');
+    if (!savedUser) {
+      navigate('/auth');
+      return;
+    }
+
+    const currentSaved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
+    let updated;
+    if (isSaved) {
+      updated = currentSaved.filter((sid: string) => sid !== id);
+    } else {
+      updated = [...currentSaved, id];
+    }
+    localStorage.setItem('saved_schemes', JSON.stringify(updated));
+    setIsSaved(!isSaved);
+    window.dispatchEvent(new Event('storage'));
+  };
+
   return (
     <div className="min-h-screen bg-[#f8fafc] pb-24">
       {/* Breadcrumbs & Actions */}
@@ -38,6 +65,17 @@ const SchemeDetails: React.FC = () => {
               <span className="text-navy font-bold line-clamp-1">{scheme.title}</span>
             </div>
             <div className="flex items-center gap-3">
+              <button 
+                onClick={toggleSave}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl border font-bold transition-all active:scale-95 ${
+                  isSaved 
+                  ? 'bg-blue-50 border-blue-200 text-blue-600' 
+                  : 'bg-white border-gray-100 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {isSaved ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
+                {isSaved ? 'Saved' : 'Save for Later'}
+              </button>
               <button className="p-2.5 rounded-xl border border-gray-100 hover:bg-gray-50 text-gray-600 transition-all active:scale-95">
                 <Share2 size={18} />
               </button>

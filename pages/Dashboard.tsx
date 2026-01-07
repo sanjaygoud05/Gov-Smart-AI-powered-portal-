@@ -3,15 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   Bookmark, 
-  ArrowRight, 
-  Zap, 
-  CheckCircle2, 
-  ChevronRight,
-  UserCircle,
+  Search, 
+  Clock, 
+  ChevronRight, 
+  Sparkles, 
+  FileText, 
+  User, 
+  AlertCircle,
+  LayoutGrid,
+  Zap,
+  Activity,
   TrendingUp,
-  FileText,
-  ShieldCheck,
-  Bell
+  ArrowRight,
+  CheckCircle2
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -60,192 +64,189 @@ const Dashboard: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-navy border-t-orange-primary rounded-full animate-spin"></div>
-          <p className="text-navy font-bold text-sm">Synchronizing your dashboard...</p>
+          <div className="w-10 h-10 border-4 border-gray-100 border-t-orange-primary rounded-full animate-spin"></div>
+          <span className="text-[#1e293b] font-bold text-xs uppercase tracking-widest">Loading Your Dashboard...</span>
         </div>
       </div>
     );
   }
 
-  const stats = [
-    { label: 'Smart Matches', value: '42', icon: <Zap size={24} />, color: 'bg-orange-50 text-orange-600', trend: '+12% this month' },
-    { label: 'Saved Programs', value: savedCount, icon: <Bookmark size={24} />, color: 'bg-blue-50 text-blue-600', trend: 'Always accessible' },
-    { label: 'Active Apps', value: '0', icon: <FileText size={24} />, color: 'bg-green-50 text-green-600', trend: 'Ready to start' },
-  ];
-
-  // Simple completion calculation
-  const getCompletion = () => {
-    if (!profile) return 0;
-    const fields = ['first_name', 'last_name', 'age', 'state', 'occupation', 'income', 'category'];
-    const filled = fields.filter(f => profile[f] && profile[f] !== '').length;
-    return Math.round((filled / fields.length) * 100);
+  const getMissingFields = () => {
+    const fields = [
+      { key: 'age', label: 'Age' },
+      { key: 'state', label: 'State' },
+      { key: 'occupation', label: 'Occupation' },
+      { key: 'income', label: 'Annual Income' }
+    ];
+    return fields.filter(f => !profile?.[f.key] || profile?.[f.key] === '');
   };
 
-  const completion = getCompletion();
+  const missingFields = getMissingFields();
+  // Ensure profile completion is measured in %
+  const completion = Math.round(((4 - missingFields.length) / 4) * 100);
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] pb-24 font-sans">
-      <div className="bg-[#1e293b] pt-24 pb-40 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"></div>
+    <div className="min-h-screen bg-[#f9fafb] pb-24 font-inter">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
+        
+        {/* Header Greeting */}
+        <div className="mb-10">
+          <h1 className="text-3xl sm:text-4xl font-black text-[#1e293b] mb-2 tracking-tight">
+            Welcome back, {profile?.first_name || 'User'}!
+          </h1>
+          <p className="text-gray-500 font-medium">Your personalized dashboard for government schemes</p>
+        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div className="flex items-center gap-6">
-              <div className="relative group">
-                <div className="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-[2rem] flex items-center justify-center text-white text-4xl font-black shadow-2xl shadow-orange-500/40 transform group-hover:rotate-6 transition-all cursor-default">
-                  {profile?.first_name?.[0] || 'U'}
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full border-4 border-[#1e293b] flex items-center justify-center">
-                  <ShieldCheck size={14} className="text-white" />
-                </div>
+        {/* 4-Stat Cards Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: 'Eligible Schemes', value: '12', icon: <FileText size={20} />, color: 'text-green-600', bg: 'bg-green-50' },
+            { label: 'Saved Schemes', value: savedCount, icon: <Bookmark size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'Expiring Soon', value: '0', icon: <Clock size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' },
+            { 
+              label: 'Profile Complete', 
+              value: completion === 100 ? 'Completed' : `${completion}%`, 
+              icon: completion === 100 ? <CheckCircle2 size={20} /> : <User size={20} />, 
+              color: completion === 100 ? 'text-green-600' : 'text-purple-600', 
+              bg: completion === 100 ? 'bg-green-50' : 'bg-purple-50' 
+            },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+              <div className={`w-12 h-12 ${stat.bg} ${stat.color} rounded-xl flex items-center justify-center shrink-0`}>
+                {stat.icon}
               </div>
-              <div className="space-y-1">
-                <h1 className="text-4xl font-extrabold text-white tracking-tight">
-                  Hi, {profile?.first_name || 'User'}!
-                </h1>
-                <p className="text-gray-400 font-medium flex items-center gap-2">
-                  <TrendingUp size={16} className="text-green-500" />
-                  Your cloud profile is <span className="text-white">{completion}% complete</span>
+              <div className="flex flex-col">
+                <span className={`text-2xl font-black ${stat.color} leading-none mb-1`}>{stat.value}</span>
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{stat.label}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Profile Completion Horizontal Widget */}
+        <div className="bg-white rounded-2xl p-8 border border-gray-100 shadow-sm mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="flex items-center gap-6 flex-1">
+              <div className={`w-12 h-12 ${completion === 100 ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'} rounded-full flex items-center justify-center shrink-0`}>
+                {completion === 100 ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-[#1e293b] mb-1">
+                  {completion === 100 ? 'Your profile is fully complete' : 'Complete your profile for better matches'}
+                </h3>
+                <p className="text-sm text-gray-500 mb-4 font-medium">
+                  {completion === 100 ? 'You are receiving highly accurate AI scheme matches.' : 'Fill in your details to discover more schemes you\'re eligible for'}
                 </p>
+                <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div 
+                    className={`absolute top-0 left-0 h-full ${completion === 100 ? 'bg-green-500' : 'bg-orange-primary'} rounded-full transition-all duration-1000 ease-out shadow-sm`}
+                    style={{ width: `${completion}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <Link 
-                to="/find-schemes" 
-                className="bg-white text-[#1e293b] hover:bg-orange-primary hover:text-white font-black py-4 px-10 rounded-2xl shadow-xl transition-all flex items-center gap-2 active:scale-95"
-              >
-                Scan for Schemes <ArrowRight size={20} />
-              </Link>
-              <button className="p-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl border border-white/10 transition-all">
-                <Bell size={20} />
-              </button>
-            </div>
+            <button 
+              onClick={() => navigate('/settings')}
+              className="px-8 py-3.5 bg-gray-50 hover:bg-[#1e293b] hover:text-white text-[#1e293b] font-bold rounded-xl border border-gray-200 hover:border-[#1e293b] transition-all active:scale-[0.98] whitespace-nowrap shadow-sm"
+            >
+              {completion === 100 ? 'Update Profile' : 'Complete Profile'}
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-24 relative z-20">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {stats.map((stat, idx) => (
-                <div key={idx} className="bg-white rounded-[2rem] p-8 border border-gray-100 shadow-sm hover:shadow-2xl transition-all group hover:-translate-y-1">
-                  <div className={`w-14 h-14 ${stat.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                    {stat.icon}
+          
+          {/* Main Content Area: Schemes For You */}
+          <div className="lg:col-span-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-black text-[#1e293b] flex items-center gap-3">
+                <Sparkles size={24} className="text-orange-500" /> Schemes For You
+              </h2>
+              <Link to="/find-schemes" className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-[#1e293b] flex items-center gap-1 transition-colors">
+                View All <ChevronRight size={16} />
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              {MOCK_SCHEMES.slice(0, 3).map((scheme) => (
+                <div 
+                  key={scheme.id}
+                  onClick={() => navigate(`/scheme/${scheme.id}`)}
+                  className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all duration-300 cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-6"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black uppercase rounded-lg tracking-wider">
+                        {scheme.category}
+                      </span>
+                      <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase tracking-widest">
+                        <TrendingUp size={12} /> 98% Match
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-bold text-[#1e293b] group-hover:text-orange-primary transition-colors mb-2 leading-tight">{scheme.title}</h4>
+                    <p className="text-sm text-gray-400 line-clamp-1 font-medium">{scheme.description}</p>
                   </div>
-                  <div className="space-y-1">
-                    <div className="text-4xl font-black text-[#1e293b] tracking-tighter">{stat.value}</div>
-                    <div className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">{stat.label}</div>
-                  </div>
-                  <div className="mt-6 pt-4 border-t border-gray-50 flex items-center gap-2 text-[11px] font-bold text-gray-400">
-                    <CheckCircle2 size={12} className="text-green-500" /> {stat.trend}
+                  <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-orange-primary group-hover:text-white transition-all duration-300">
+                    <ChevronRight size={20} />
                   </div>
                 </div>
               ))}
             </div>
+          </div>
 
-            <div className="bg-white rounded-[2.5rem] p-10 border border-gray-100 shadow-sm">
-              <div className="flex justify-between items-center mb-10">
-                <div className="space-y-1">
-                  <h2 className="text-2xl font-black text-[#1e293b]">AI Smart Matches</h2>
-                  <p className="text-sm text-gray-400 font-medium">Personalized recommendations based on your cloud profile.</p>
-                </div>
-                <Link to="/find-schemes" className="px-5 py-2 bg-orange-50 text-orange-600 rounded-xl font-bold text-xs hover:bg-orange-primary hover:text-white transition-all">
-                  View Full Report
-                </Link>
-              </div>
-              
-              <div className="space-y-6">
-                {MOCK_SCHEMES.slice(0, 3).map((scheme) => (
-                  <div key={scheme.id} className="group p-6 bg-gray-50 hover:bg-white rounded-3xl border border-transparent hover:border-orange-200 hover:shadow-xl transition-all flex flex-col md:flex-row md:items-center gap-6">
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-center gap-3">
-                        <span className="px-3 py-1 bg-white text-[#1e293b] text-[10px] font-black uppercase rounded-lg border border-gray-100 shadow-sm">
-                          {scheme.category}
-                        </span>
-                        <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black uppercase rounded-lg border border-green-100">
-                          <Zap size={10} fill="currentColor" /> Match: 98%
-                        </div>
+          {/* Sidebar Area: Quick Actions */}
+          <div className="lg:col-span-4">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-[#1e293b]">Quick Actions</h2>
+            </div>
+            
+            <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+              <div className="space-y-3">
+                {[
+                  { label: 'Browse All Schemes', icon: <LayoutGrid size={18} />, path: '/find-schemes' },
+                  { label: 'Check Eligibility', icon: <Zap size={18} />, path: '/find-schemes?tab=eligibility' },
+                  { label: 'My Saved Items', icon: <Bookmark size={18} />, path: '/saved-schemes' },
+                  { label: 'Process Guide', icon: <Clock size={18} />, path: '/how-it-works' },
+                  { label: 'Recent Activity', icon: <Activity size={18} />, path: '/dashboard' },
+                ].map((action, i) => (
+                  <Link 
+                    key={i} 
+                    to={action.path}
+                    className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-[#1e293b] hover:text-white transition-all duration-300 group border border-transparent shadow-sm hover:shadow-md"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="text-[#1e293b] group-hover:text-orange-400 transition-colors shrink-0">
+                        {action.icon}
                       </div>
-                      <h3 className="text-xl font-bold text-[#1e293b] group-hover:text-orange-primary transition-colors">{scheme.title}</h3>
-                      <p className="text-sm text-gray-500 line-clamp-1 font-medium">{scheme.description}</p>
+                      <span className="font-black text-[14px] text-[#1e293b] group-hover:text-white transition-colors">
+                        {action.label}
+                      </span>
                     </div>
-                    <Link 
-                      to={`/scheme/${scheme.id}`} 
-                      className="px-8 py-3.5 bg-white text-[#1e293b] font-black rounded-2xl hover:bg-[#1e293b] hover:text-white border-2 border-gray-100 hover:border-[#1e293b] transition-all text-sm whitespace-nowrap text-center shadow-sm"
-                    >
-                      Analyze Profile
-                    </Link>
-                  </div>
+                    <ChevronRight size={18} className="text-gray-400 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  </Link>
                 ))}
               </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-4 space-y-8">
-            <div className="bg-white rounded-[2.5rem] p-8 border border-gray-100 shadow-sm overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-              
-              <h3 className="text-xl font-black text-[#1e293b] mb-8 relative z-10">Profile Strength</h3>
-              
-              <div className="flex justify-center mb-10 relative">
-                <svg className="w-40 h-40 transform -rotate-90">
-                  <circle cx="80" cy="80" r="70" className="stroke-gray-100" strokeWidth="12" fill="transparent" />
-                  <circle 
-                    cx="80" cy="80" r="70" 
-                    className="stroke-orange-500 transition-all duration-1000" 
-                    strokeWidth="12" 
-                    fill="transparent" 
-                    strokeDasharray={440} 
-                    strokeDashoffset={440 - (440 * (completion / 100))} 
-                    strokeLinecap="round"
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-[#1e293b]">
-                  <span className="text-4xl font-black">{completion}%</span>
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cloud Sync</span>
-                </div>
+            {/* AI Assistant Widget */}
+            <div className="mt-8 bg-[#1e293b] rounded-3xl p-8 text-white relative overflow-hidden group shadow-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-orange-primary opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+              <div className="relative z-10 text-center sm:text-left">
+                <h3 className="text-xl font-bold mb-3">Need Assistance?</h3>
+                <p className="text-sm text-gray-400 mb-8 leading-relaxed font-medium">Our AI expert is here to help you understand requirements and application steps.</p>
+                <button 
+                  onClick={() => {
+                    const launchEvent = new CustomEvent('launch-ai-chat');
+                    window.dispatchEvent(launchEvent);
+                  }}
+                  className="w-full py-4 bg-orange-primary hover:bg-white hover:text-[#1e293b] text-white font-black rounded-xl transition-all duration-300 text-sm shadow-lg shadow-orange-500/20 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  Chat with Assistant <ArrowRight size={18} />
+                </button>
               </div>
-
-              <div className="space-y-4 mb-8">
-                {completion < 100 ? (
-                  <div className="flex items-center gap-3 p-3 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    Complete details for better AI matching
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 p-3 bg-green-50 text-green-600 rounded-2xl text-xs font-bold border border-green-100">
-                    <CheckCircle2 size={14} />
-                    Profile Fully Optimized
-                  </div>
-                )}
-                <div className="flex items-center gap-3 p-3 bg-gray-50 text-gray-400 rounded-2xl text-xs font-bold border border-gray-100">
-                  <CheckCircle2 size={14} className="text-green-500" />
-                  Real-time Cloud Sync Active
-                </div>
-              </div>
-
-              <Link to="/settings" className="block w-full py-4 bg-[#1e293b] hover:bg-orange-primary text-white font-black rounded-2xl text-center transition-all shadow-xl shadow-navy/20">
-                Update Information
-              </Link>
-            </div>
-
-            <div className="bg-gradient-to-br from-orange-primary to-orange-600 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-orange-500/20 relative overflow-hidden group">
-              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-8">
-                <UserCircle size={32} />
-              </div>
-              <h3 className="text-2xl font-black mb-4">Expert AI Assistant</h3>
-              <p className="text-orange-50/70 text-sm font-medium mb-10 leading-relaxed">
-                Our specialized AI uses your cloud profile to answer complex questions about your eligibility.
-              </p>
-              <Link to="/faqs" className="block w-full py-4 bg-white text-orange-600 font-black rounded-2xl text-center hover:bg-orange-50 transition-all shadow-lg active:scale-95">
-                Start Consultation
-              </Link>
             </div>
           </div>
+
         </div>
       </div>
     </div>

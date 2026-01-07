@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, User, Menu, X, ChevronRight, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Search, User, Menu, X, ChevronRight, LogOut, Settings, ChevronDown, Bookmark, LayoutDashboard } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
@@ -16,7 +16,6 @@ const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    // Mock auth session using localStorage
     const checkUser = () => {
       const savedUser = localStorage.getItem('gov_smart_user');
       if (savedUser) {
@@ -103,7 +102,7 @@ const Navbar: React.FC = () => {
 
           <div className="flex items-center gap-x-6">
             <div className="hidden md:flex items-center gap-x-6 pr-6 border-r border-gray-100">
-              <button className="text-gray-400 hover:text-navy transition-colors">
+              <button className="text-gray-400 hover:text-navy transition-colors" onClick={() => navigate('/find-schemes')}>
                 <Search size={20} />
               </button>
             </div>
@@ -128,6 +127,12 @@ const Navbar: React.FC = () => {
                       <p className="text-xs text-gray-400 truncate">{user.email}</p>
                     </div>
                     <div className="p-2">
+                      <Link to="/dashboard" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-navy rounded-xl transition-all">
+                        <LayoutDashboard size={18} /> My Dashboard
+                      </Link>
+                      <Link to="/saved-schemes" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-navy rounded-xl transition-all">
+                        <Bookmark size={18} /> Saved Schemes
+                      </Link>
                       <Link to="/settings" onClick={() => setIsProfileOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:text-navy rounded-xl transition-all">
                         <Settings size={18} /> Profile Settings
                       </Link>
@@ -183,6 +188,26 @@ const Navbar: React.FC = () => {
               <ChevronRight size={18} className={isActive(link.path) ? 'opacity-100' : 'opacity-0'} />
             </Link>
           ))}
+          {user && (
+            <Link 
+              to="/dashboard"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-between p-4 rounded-2xl font-bold text-navy hover:bg-gray-50 transition-all"
+            >
+              My Dashboard
+              <LayoutDashboard size={18} />
+            </Link>
+          )}
+          {user && (
+            <Link 
+              to="/saved-schemes"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-between p-4 rounded-2xl font-bold text-navy hover:bg-gray-50 transition-all"
+            >
+              Saved Schemes
+              <Bookmark size={18} />
+            </Link>
+          )}
           <div className="pt-4 border-t border-gray-50">
             {user ? (
                <button 

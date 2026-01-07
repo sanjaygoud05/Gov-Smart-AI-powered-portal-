@@ -32,6 +32,7 @@ const SavedSchemes: React.FC = () => {
     const updated = current.filter((sid: string) => sid !== id);
     localStorage.setItem('saved_schemes', JSON.stringify(updated));
     setSavedSchemes(prev => prev.filter(s => s.id !== id));
+    window.dispatchEvent(new Event('storage'));
   };
 
   if (loading) {
@@ -47,8 +48,8 @@ const SavedSchemes: React.FC = () => {
       <div className="bg-white border-b sticky top-20 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-navy transition-all">
-              <ChevronLeft size={18} /> Back to Dashboard
+            <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-navy transition-all">
+              <ChevronLeft size={18} /> Back to Home
             </Link>
             <div className="flex items-center gap-2 px-4 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
               <Bookmark size={14} /> {savedSchemes.length} Saved Schemes

@@ -3,8 +3,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gov-Smart | AI Government Schemes Discovery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Gov-Smart | AI-Powered Government Schemes Discovery</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Discover, search, and apply for 500+ Central and State government welfare schemes using AI-driven matching. Personalized recommendations for Indian citizens.">
+    <meta name="keywords" content="Government Schemes, India, PM-Kisan, Ayushman Bharat, Welfare, AI Portal, Digital India">
+    <meta name="author" content="Gov-Smart Team">
+    <meta name="theme-color" content="#1e293b">
+
+    <!-- Social Sharing (OpenGraph) -->
+    <meta property="og:title" content="Gov-Smart | Find Government Schemes You Are Eligible For">
+    <meta property="og:description" content="AI-powered discovery for Indian government benefits. Fast, free, and accurate.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://fonts.gstatic.com/s/i/short-term/release/googleglyphs/smart_display/default/24px.svg">
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/short-term/release/googleglyphs/smart_display/default/24px.svg">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -12,12 +29,53 @@
             font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
             background-color: #f9fafb;
+            scroll-behavior: smooth;
         }
         .bg-navy { background-color: #1e293b; }
         .text-navy { color: #1e293b; }
         .bg-orange-primary { background-color: #f97316; }
         .text-orange-primary { color: #f97316; }
         
+        /* 
+           THEME SELECTION COLOR
+           Ensures text selection matches the navy theme
+        */
+        ::selection {
+            background-color: #1e293b;
+            color: #ffffff;
+        }
+
+        /* 
+           CRITICAL FIX: CUSTOM NAVY CURSOR
+           Forces a Navy-colored SVG I-beam cursor for all text inputs.
+           The SVG is an I-beam (text cursor) shape in #1e293b.
+        */
+        input, 
+        textarea, 
+        [contenteditable="true"],
+        .cursor-text {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
+            caret-color: #1e293b !important;
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+
+        /* Standard pointer for buttons and links */
+        button, 
+        a, 
+        select,
+        [role="button"],
+        .cursor-pointer {
+            cursor: pointer !important;
+        }
+
+        /* Ensure cursor remains custom even on focus */
+        input:focus, 
+        textarea:focus {
+            outline: none;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
+        }
+
         /* Smooth Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -29,6 +87,9 @@
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* Performance Fix for Mobile Tap Highlight */
+        * { -webkit-tap-highlight-color: transparent; }
     </style>
 <script type="importmap">
 {
