@@ -1,0 +1,8 @@
+{
+  "name": "Gov-Smart_AI_Portal",
+  "description": "A comprehensive portal to discover, search, and apply for government welfare schemes across India using AI-driven matching.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
