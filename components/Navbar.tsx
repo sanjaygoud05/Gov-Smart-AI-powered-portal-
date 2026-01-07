@@ -102,7 +102,7 @@ const Navbar: React.FC = () => {
 
           <div className="flex items-center gap-x-6">
             <div className="hidden md:flex items-center gap-x-6 pr-6 border-r border-gray-100">
-              <button className="text-gray-400 hover:text-navy transition-colors" onClick={() => navigate('/find-schemes')}>
+              <button className="text-gray-400 hover:text-navy transition-colors" onClick={() => navigate('/find-schemes?tab=browse')}>
                 <Search size={20} />
               </button>
             </div>

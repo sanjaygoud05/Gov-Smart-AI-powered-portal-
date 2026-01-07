@@ -11,7 +11,11 @@ import { UserProfile, Scheme } from '../types';
 const FindSchemes: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'eligibility' | 'browse'>(searchParams.get('q') || searchParams.get('category') ? 'browse' : 'eligibility');
+  const [activeTab, setActiveTab] = useState<'eligibility' | 'browse'>(
+    searchParams.get('tab') === 'browse' || searchParams.get('q') || searchParams.get('category') 
+    ? 'browse' 
+    : 'eligibility'
+  );
   
   // Browsing/Search state
   const [schemes, setSchemes] = useState<Scheme[]>(MOCK_SCHEMES);
