@@ -15,7 +15,9 @@ import {
   Activity,
   TrendingUp,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  CalendarDays,
+  Globe
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
@@ -82,7 +84,6 @@ const Dashboard: React.FC = () => {
   };
 
   const missingFields = getMissingFields();
-  // Ensure profile completion is measured in %
   const completion = Math.round(((4 - missingFields.length) / 4) * 100);
 
   return (
@@ -90,19 +91,25 @@ const Dashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12">
         
         {/* Header Greeting */}
-        <div className="mb-10">
-          <h1 className="text-3xl sm:text-4xl font-black text-[#1e293b] mb-2 tracking-tight">
-            Welcome back, {profile?.first_name || 'User'}!
-          </h1>
-          <p className="text-gray-500 font-medium">Your personalized dashboard for government schemes</p>
+        <div className="mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-black text-[#1e293b] mb-2 tracking-tight">
+              Welcome back, {profile?.first_name || 'User'}!
+            </h1>
+            <p className="text-gray-500 font-medium">Your personalized portal to government benefits</p>
+          </div>
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
+            <CalendarDays size={18} className="text-orange-500" />
+            <span className="text-xs font-black text-navy uppercase tracking-wider">January 2024</span>
+          </div>
         </div>
 
         {/* 4-Stat Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Eligible Schemes', value: '12', icon: <FileText size={20} />, color: 'text-green-600', bg: 'bg-green-50' },
+            { label: 'Scheme Matches', value: '12', icon: <Sparkles size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' },
             { label: 'Saved Schemes', value: savedCount, icon: <Bookmark size={20} />, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Expiring Soon', value: '0', icon: <Clock size={20} />, color: 'text-orange-600', bg: 'bg-orange-50' },
+            { label: 'Central Schemes', value: '450+', icon: <Globe size={20} />, color: 'text-green-600', bg: 'bg-green-50' },
             { 
               label: 'Profile Complete', 
               value: completion === 100 ? 'Completed' : `${completion}%`, 
@@ -132,10 +139,10 @@ const Dashboard: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-[#1e293b] mb-1">
-                  {completion === 100 ? 'Your profile is fully complete' : 'Complete your profile for better matches'}
+                  {completion === 100 ? 'Profile Fully Optimized' : 'Complete Your Profile for Better Matches'}
                 </h3>
                 <p className="text-sm text-gray-500 mb-4 font-medium">
-                  {completion === 100 ? 'You are receiving highly accurate AI scheme matches.' : 'Fill in your details to discover more schemes you\'re eligible for'}
+                  {completion === 100 ? 'You are receiving the most accurate scheme recommendations based on your profile.' : 'Adding your income and occupation details helps our AI find more specific subsidies and grants for you.'}
                 </p>
                 <div className="relative w-full h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div 
@@ -149,7 +156,7 @@ const Dashboard: React.FC = () => {
               onClick={() => navigate('/settings')}
               className="px-8 py-3.5 bg-gray-50 hover:bg-[#1e293b] hover:text-white text-[#1e293b] font-bold rounded-xl border border-gray-200 hover:border-[#1e293b] transition-all active:scale-[0.98] whitespace-nowrap shadow-sm"
             >
-              {completion === 100 ? 'Update Profile' : 'Complete Profile'}
+              {completion === 100 ? 'Review Settings' : 'Complete Profile'}
             </button>
           </div>
         </div>
@@ -160,7 +167,7 @@ const Dashboard: React.FC = () => {
           <div className="lg:col-span-8">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-black text-[#1e293b] flex items-center gap-3">
-                <Sparkles size={24} className="text-orange-500" /> Schemes For You
+                <Sparkles size={24} className="text-orange-500" /> Recommended For You
               </h2>
               <Link to="/find-schemes" className="text-xs font-black text-gray-400 uppercase tracking-widest hover:text-[#1e293b] flex items-center gap-1 transition-colors">
                 View All <ChevronRight size={16} />
@@ -179,9 +186,6 @@ const Dashboard: React.FC = () => {
                       <span className="px-3 py-1 bg-gray-100 text-gray-500 text-[10px] font-black uppercase rounded-lg tracking-wider">
                         {scheme.category}
                       </span>
-                      <div className="flex items-center gap-1 text-[10px] font-black text-green-600 uppercase tracking-widest">
-                        <TrendingUp size={12} /> 98% Match
-                      </div>
                     </div>
                     <h4 className="text-xl font-bold text-[#1e293b] group-hover:text-orange-primary transition-colors mb-2 leading-tight">{scheme.title}</h4>
                     <p className="text-sm text-gray-400 line-clamp-1 font-medium">{scheme.description}</p>
@@ -197,17 +201,17 @@ const Dashboard: React.FC = () => {
           {/* Sidebar Area: Quick Actions */}
           <div className="lg:col-span-4">
             <div className="mb-8">
-              <h2 className="text-2xl font-black text-[#1e293b]">Quick Actions</h2>
+              <h2 className="text-2xl font-black text-[#1e293b]">Quick Access</h2>
             </div>
             
             <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
               <div className="space-y-3">
                 {[
-                  { label: 'Browse All Schemes', icon: <LayoutGrid size={18} />, path: '/find-schemes' },
-                  { label: 'Check Eligibility', icon: <Zap size={18} />, path: '/find-schemes?tab=eligibility' },
+                  { label: 'Scheme Library', icon: <LayoutGrid size={18} />, path: '/find-schemes' },
+                  { label: 'Eligibility Wizard', icon: <Zap size={18} />, path: '/find-schemes?tab=eligibility' },
                   { label: 'My Saved Items', icon: <Bookmark size={18} />, path: '/saved-schemes' },
-                  { label: 'Process Guide', icon: <Clock size={18} />, path: '/how-it-works' },
-                  { label: 'Recent Activity', icon: <Activity size={18} />, path: '/dashboard' },
+                  { label: 'How It Works', icon: <Clock size={18} />, path: '/how-it-works' },
+                  { label: 'Profile Settings', icon: <Activity size={18} />, path: '/settings' },
                 ].map((action, i) => (
                   <Link 
                     key={i} 
@@ -232,8 +236,8 @@ const Dashboard: React.FC = () => {
             <div className="mt-8 bg-[#1e293b] rounded-3xl p-8 text-white relative overflow-hidden group shadow-xl">
               <div className="absolute top-0 right-0 w-32 h-32 bg-orange-primary opacity-10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
               <div className="relative z-10 text-center sm:text-left">
-                <h3 className="text-xl font-bold mb-3">Need Assistance?</h3>
-                <p className="text-sm text-gray-400 mb-8 leading-relaxed font-medium">Our AI expert is here to help you understand requirements and application steps.</p>
+                <h3 className="text-xl font-bold mb-3">AI Assistant</h3>
+                <p className="text-sm text-gray-400 mb-8 leading-relaxed font-medium">Ask about specific criteria, document lists, or application procedures.</p>
                 <button 
                   onClick={() => {
                     const launchEvent = new CustomEvent('launch-ai-chat');
@@ -241,7 +245,7 @@ const Dashboard: React.FC = () => {
                   }}
                   className="w-full py-4 bg-orange-primary hover:bg-white hover:text-[#1e293b] text-white font-black rounded-xl transition-all duration-300 text-sm shadow-lg shadow-orange-500/20 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  Chat with Assistant <ArrowRight size={18} />
+                  Start Consultation <ArrowRight size={18} />
                 </button>
               </div>
             </div>

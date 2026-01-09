@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, Zap, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Search, ChevronRight, Zap, Clock, ArrowRight, Sparkles } from 'lucide-react';
 import { CATEGORIES, MOCK_SCHEMES } from '../constants';
 import { fetchAllSchemes } from '../services/schemeService';
 import { Scheme } from '../types';
@@ -40,8 +40,8 @@ const Home: React.FC = () => {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-xs font-medium mb-8 border border-white/20">
-            <Zap size={14} className="text-orange-400" />
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full text-white text-xs font-bold mb-8 border border-white/20">
+            <Sparkles size={14} className="text-orange-400" />
             AI-Powered Government Schemes Discovery
           </div>
           <h1 className="text-4xl sm:text-6xl font-extrabold text-white mb-6 tracking-tight">
@@ -58,7 +58,7 @@ const Home: React.FC = () => {
             </div>
             <input 
               type="text" 
-              placeholder="Search for schemes, benefits, or categories..."
+              placeholder="e.g., 'Farmer Subsidy' or 'Health Insurance'..."
               className="w-full pl-12 pr-32 py-5 rounded-xl border-2 border-transparent focus:border-orange-400 focus:outline-none bg-white text-navy font-medium text-lg shadow-2xl transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -76,7 +76,7 @@ const Home: React.FC = () => {
               onClick={() => navigate('/find-schemes')}
               className="px-8 py-4 bg-orange-primary hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105"
             >
-              Find Schemes For You
+              Start Eligibility Check
             </button>
             <button 
               onClick={() => navigate('/how-it-works')}
@@ -93,19 +93,19 @@ const Home: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div className="text-center">
                     <div className="text-3xl font-bold text-navy mb-1">500+</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Government Schemes</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Welfare Schemes</div>
                 </div>
                 <div className="text-center border-l border-gray-100">
-                    <div className="text-3xl font-bold text-navy mb-1">29</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">States & UTs</div>
+                    <div className="text-3xl font-bold text-navy mb-1">28+</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">States Covered</div>
                 </div>
                 <div className="text-center border-l border-gray-100">
-                    <div className="text-3xl font-bold text-navy mb-1">24/7</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Access Anytime</div>
+                    <div className="text-3xl font-bold text-navy mb-1">AI</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Smart Matching</div>
                 </div>
                 <div className="text-center border-l border-gray-100">
                     <div className="text-3xl font-bold text-navy mb-1">100%</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Free Service</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-widest font-bold">Free to Use</div>
                 </div>
             </div>
         </div>
@@ -115,7 +115,7 @@ const Home: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-extrabold text-navy mb-4">Browse Schemes by Category</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">Explore government schemes across different sectors designed to support citizens in various aspects of life.</p>
+            <p className="text-gray-600 max-w-2xl mx-auto">Explore welfare programs designed for every section of society.</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
@@ -144,7 +144,7 @@ const Home: React.FC = () => {
             <div className="flex justify-between items-end mb-12">
                 <div>
                     <h2 className="text-3xl font-extrabold text-navy mb-4">Popular Schemes</h2>
-                    <p className="text-gray-600">Most accessed government welfare schemes right now.</p>
+                    <p className="text-gray-600">Most relevant programs for citizens across India right now.</p>
                 </div>
                 <button 
                   onClick={() => navigate('/find-schemes')}
@@ -162,7 +162,9 @@ const Home: React.FC = () => {
                     >
                         <div className="flex items-center gap-2 mb-4">
                             <span className="px-3 py-1 bg-green-100 text-green-700 text-[10px] uppercase font-bold rounded-full">{scheme.category}</span>
-                            <span className="px-3 py-1 bg-blue-100 text-blue-700 text-[10px] uppercase font-bold rounded-full">{scheme.level}</span>
+                            <span className={`px-3 py-1 text-[10px] uppercase font-black rounded-full ${scheme.level === 'Central' ? 'bg-blue-100 text-blue-600' : 'bg-purple-100 text-purple-600'}`}>
+                              {scheme.level}
+                            </span>
                         </div>
                         <h3 className="text-xl font-bold text-navy mb-4 group-hover:text-orange-600 transition-colors duration-300">{scheme.title}</h3>
                         <p className="text-gray-600 text-sm mb-8 flex-grow leading-relaxed">{scheme.description}</p>

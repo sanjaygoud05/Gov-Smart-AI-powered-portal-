@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Filter, ChevronLeft, ChevronRight, Check, Sparkles, ChevronDown, RefreshCcw, XCircle, ArrowRight } from 'lucide-react';
+import { Search, Filter, ChevronLeft, ChevronRight, Check, Sparkles, ChevronDown, RefreshCcw, XCircle, ArrowRight, Globe } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { MOCK_SCHEMES, CATEGORIES, INDIAN_STATES_UTS, OCCUPATIONS } from '../constants';
@@ -18,7 +18,7 @@ const FindSchemes: React.FC = () => {
   );
   
   // Browsing/Search state
-  const [schemes, setSchemes] = useState<Scheme[]>(MOCK_SCHEMES);
+  const [schemes, setSchemes] = useState<any[]>(MOCK_SCHEMES);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(searchParams.get('category') ? [searchParams.get('category')!] : []);
@@ -95,7 +95,7 @@ const FindSchemes: React.FC = () => {
                 setSchemes(filtered);
             }
         };
-        const debounce = setTimeout(performSearch, 300);
+        const debounce = setTimeout(performSearch, 500);
         return () => clearTimeout(debounce);
     }
   }, [searchQuery, selectedCategories, schemeLevel, activeTab, isAiFiltered]);
@@ -136,6 +136,10 @@ const FindSchemes: React.FC = () => {
 
   const commonInputClass = "w-full px-4 py-3 rounded-lg border border-gray-200 bg-[#f4f7f9] text-[#1e293b] font-medium text-[15px] focus:ring-2 focus:ring-orange-primary/20 focus:outline-none transition-all";
   const commonSelectClass = "w-full px-4 py-3 rounded-lg border border-gray-200 bg-[#f4f7f9] text-[#1e293b] font-medium text-[15px] focus:outline-none transition-all appearance-none cursor-pointer";
+
+  const isNewScheme = (updatedAt: string) => {
+    return updatedAt.includes('2024');
+  };
 
   const renderEligibilityStep = () => {
     switch(step) {
@@ -286,13 +290,13 @@ const FindSchemes: React.FC = () => {
                         <p className="text-white/70 text-sm font-medium">
                             {matchedSchemes.length > 0 
                                 ? `Based on your profile, you are eligible for the following ${matchedSchemes.length} programs.` 
-                                : "We couldn't find any schemes that perfectly match your current cloud profile details."}
+                                : "We couldn't find any schemes that perfectly match your current details."}
                         </p>
                     </div>
                 ) : (
                     <>
-                        <h2 className="text-3xl font-black mb-4">Check Your Eligibility</h2>
-                        <p className="text-gray-400 text-sm font-medium">Your cloud profile details have been pre-filled for convenience.</p>
+                        <h2 className="text-3xl font-black mb-4">Check Eligibility</h2>
+                        <p className="text-gray-400 text-sm font-medium">We'll use AI to analyze your profile against 500+ government programs.</p>
                         <div className="mt-8 flex items-center gap-2">
                             {[1, 2, 3, 4].map(s => (
                                 <div key={s} className={`h-1.5 flex-1 rounded-full transition-all ${s <= step ? 'bg-orange-500' : 'bg-white/10'}`}></div>
@@ -306,7 +310,7 @@ const FindSchemes: React.FC = () => {
                 {loading ? (
                     <div className="py-20 flex flex-col items-center justify-center gap-4">
                         <div className="w-12 h-12 border-4 border-gray-100 border-t-orange-primary rounded-full animate-spin"></div>
-                        <p className="text-navy font-bold text-sm animate-pulse">Analyzing cloud profile with AI...</p>
+                        <p className="text-navy font-bold text-sm animate-pulse">Running AI Eligibility Engine...</p>
                     </div>
                 ) : hasFinishedWizard ? (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -324,7 +328,7 @@ const FindSchemes: React.FC = () => {
                                                     {scheme.category}
                                                 </span>
                                                 <div className="flex items-center gap-1.5 text-[10px] font-black text-green-600 uppercase">
-                                                    <Sparkles size={10} fill="currentColor" /> Match: 99%
+                                                    <Sparkles size={10} fill="currentColor" /> Match: 95%
                                                 </div>
                                             </div>
                                             <h3 className="text-lg font-bold text-navy group-hover:text-orange-primary transition-colors">{scheme.title}</h3>
@@ -347,9 +351,9 @@ const FindSchemes: React.FC = () => {
                                 <div className="w-20 h-20 bg-red-50 text-red-400 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <XCircle size={32} />
                                 </div>
-                                <h3 className="text-xl font-bold text-navy mb-2">No Matching Schemes</h3>
+                                <h3 className="text-xl font-bold text-navy mb-2">No Matches Found</h3>
                                 <p className="text-gray-500 text-sm max-w-sm mx-auto mb-10 leading-relaxed">
-                                    We couldn't find any schemes currently active for your profile combination. Try adjusting your income range or location in settings.
+                                    We couldn't find any schemes matching your exact profile. New schemes are added daily.
                                 </p>
                                 <button 
                                     onClick={resetWizard}
@@ -376,7 +380,7 @@ const FindSchemes: React.FC = () => {
                                 disabled={!isStepValid()}
                                 className="px-10 py-4 bg-navy text-white font-bold rounded-2xl shadow-xl hover:bg-orange-primary transition-all flex items-center gap-2 disabled:opacity-50"
                             >
-                                {step === 4 ? 'Find My Schemes' : 'Next Step'}
+                                {step === 4 ? 'Match Schemes' : 'Next Step'}
                                 {step !== 4 && <ChevronRight size={18} />}
                             </button>
                         </div>
@@ -436,32 +440,12 @@ const FindSchemes: React.FC = () => {
                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors" size={20} />
                 <input 
                   type="text"
-                  placeholder="Search by keyword, benefit, or department..."
+                  placeholder="e.g. 'Farmer Subsidy', 'Education Loan'..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-16 pr-6 py-5 bg-white border-2 border-transparent focus:border-orange-200 focus:outline-none rounded-[2rem] shadow-sm text-navy font-bold transition-all"
                 />
               </div>
-
-              {isAiFiltered && (
-                <div className="bg-orange-50 border border-orange-100 p-6 rounded-3xl flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-orange-500 shadow-sm">
-                      <Sparkles size={24} />
-                    </div>
-                    <div>
-                      <h4 className="text-navy font-bold">AI Recommended for You</h4>
-                      <p className="text-orange-600 text-xs font-medium">Based on your eligibility profile</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => { setIsAiFiltered(false); setSearchQuery(''); }}
-                    className="text-orange-600 font-bold text-xs hover:underline"
-                  >
-                    Clear AI Filter
-                  </button>
-                </div>
-              )}
 
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -475,11 +459,13 @@ const FindSchemes: React.FC = () => {
                     <div 
                       key={scheme.id}
                       onClick={() => navigate(`/scheme/${scheme.id}`)}
-                      className="bg-white p-8 rounded-[2rem] border border-gray-100 hover:border-orange-400 hover:shadow-2xl transition-all cursor-pointer group flex flex-col h-full"
+                      className="bg-white p-8 rounded-[2rem] border border-gray-100 hover:border-orange-400 hover:shadow-2xl transition-all cursor-pointer group flex flex-col h-full relative"
                     >
                       <div className="flex flex-wrap gap-2 mb-6">
                         <span className="px-3 py-1 bg-green-50 text-green-700 text-[10px] font-black uppercase rounded-lg">{scheme.category}</span>
-                        <span className="px-3 py-1 bg-blue-50 text-blue-700 text-[10px] font-black uppercase rounded-lg">{scheme.level}</span>
+                        {isNewScheme(scheme.updatedAt) && (
+                          <span className="px-3 py-1 bg-orange-100 text-orange-600 text-[10px] font-black uppercase rounded-lg">Updated</span>
+                        )}
                       </div>
                       <h3 className="text-xl font-bold text-navy mb-4 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">{scheme.title}</h3>
                       <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 mb-8 flex-grow">{scheme.description}</p>
@@ -498,7 +484,7 @@ const FindSchemes: React.FC = () => {
                     <Search size={32} />
                   </div>
                   <h3 className="text-2xl font-bold text-navy mb-2">No schemes found</h3>
-                  <p className="text-gray-500">Try adjusting your filters or search terms.</p>
+                  <p className="text-gray-500">Try searching for generic terms like "Farmer" or "Health".</p>
                 </div>
               )}
             </div>
