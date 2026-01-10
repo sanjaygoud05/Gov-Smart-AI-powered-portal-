@@ -29,7 +29,11 @@ const SchemeDetails: React.FC = () => {
   }
 
   const handleApply = () => {
-    window.open('https://india.gov.in', '_blank');
+    if (scheme.applicationUrl) {
+      window.open(scheme.applicationUrl, '_blank');
+    } else {
+      window.open('https://india.gov.in', '_blank');
+    }
   };
 
   const toggleSave = () => {

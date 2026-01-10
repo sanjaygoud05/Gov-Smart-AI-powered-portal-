@@ -12,6 +12,7 @@ export interface Scheme {
   eligibility: string[];
   documents: string[];
   howToApply: string[];
+  applicationUrl: string;
   faqs: { question: string; answer: string }[];
 }
 
