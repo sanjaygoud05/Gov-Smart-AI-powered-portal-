@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -23,6 +23,34 @@ const ScrollToTop = () => {
   return null;
 };
 
+// Component to protect routes that require authentication
+// Fix: Use optional children to resolve "Property 'children' is missing in type '{}'" errors in some TSX environments
+const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const savedUser = localStorage.getItem('gov_smart_user');
+      setIsAuthenticated(!!savedUser);
+    };
+
+    checkAuth();
+    // Listen for storage changes to handle login/logout across tabs or state updates
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  if (isAuthenticated === null) return null; // Wait for initial check
+
+  if (!isAuthenticated) {
+    // Redirect to login page, but save the current location they were trying to go to
+    return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
@@ -31,15 +59,45 @@ const App: React.FC = () => {
         <Navbar />
         <main className="flex-grow">
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/saved-schemes" element={<SavedSchemes />} />
-            <Route path="/find-schemes" element={<FindSchemes />} />
-            <Route path="/scheme/:id" element={<SchemeDetails />} />
-            <Route path="/auth" element={<Auth />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/faqs" element={<FAQs />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/auth" element={<Auth />} />
+
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/saved-schemes" element={
+              <ProtectedRoute>
+                <SavedSchemes />
+              </ProtectedRoute>
+            } />
+            <Route path="/find-schemes" element={
+              <ProtectedRoute>
+                <FindSchemes />
+              </ProtectedRoute>
+            } />
+            <Route path="/scheme/:id" element={
+              <ProtectedRoute>
+                <SchemeDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/faqs" element={
+              <ProtectedRoute>
+                <FAQs />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
         <Footer />

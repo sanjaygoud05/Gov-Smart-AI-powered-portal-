@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Mail, Lock, Sparkles, ChevronLeft, Eye, EyeOff, UserCircle, CheckCircle2, Send, KeyRound } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
@@ -24,6 +24,10 @@ const Auth: React.FC = () => {
   const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
   const [resetEmailSent, setResetEmailSent] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect back to the intended page or default to home
+  const from = location.state?.from?.pathname || "/";
 
   // Form states
   const [formData, setFormData] = useState({
@@ -62,7 +66,6 @@ const Auth: React.FC = () => {
           const user = userCredential.user;
           
           if (!user.emailVerified) {
-            // User exists but email not verified
             await sendEmailVerification(user);
             setVerificationEmail(user.email);
             await signOut(auth);
@@ -78,7 +81,9 @@ const Auth: React.FC = () => {
           
           localStorage.setItem('gov_smart_user', JSON.stringify(userData));
           window.dispatchEvent(new Event('storage'));
-          navigate('/');
+          
+          // SUCCESS: Redirect back to the intended protected page
+          navigate(from, { replace: true });
         } catch (err: any) {
           const authError = err as AuthError;
           if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
@@ -94,14 +99,10 @@ const Auth: React.FC = () => {
           const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
           const user = userCredential.user;
 
-          // Update profile with name if provided
           if (formData.username) {
-            await updateProfile(user, {
-              displayName: formData.username
-            });
+            await updateProfile(user, { displayName: formData.username });
           }
 
-          // Create initial profile document in Firestore
           await setDoc(doc(db, "profiles", user.uid), {
             first_name: formData.username || user.email?.split('@')[0],
             last_name: '',
@@ -114,13 +115,8 @@ const Auth: React.FC = () => {
             created_at: new Date().toISOString()
           });
 
-          // Send verification email
           await sendEmailVerification(user);
-          
-          // Show verification screen
           setVerificationEmail(user.email);
-          
-          // Sign out so they can't access app until they verify and log back in
           await signOut(auth);
           setLoading(false);
         } catch (err: any) {

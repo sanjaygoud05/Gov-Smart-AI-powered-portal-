@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { 
   X, Bot, Volume2, Mic, MicOff, 
-  Globe, Sparkles, VolumeX, SendHorizontal, Loader2
+  Globe, Sparkles, VolumeX, SendHorizontal, Loader2,
+  Square, Waves, Mic2, ChevronRight
 } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
 import { MOCK_SCHEMES } from '../constants';
@@ -21,7 +22,7 @@ const LANGUAGES: LanguageOption[] = [
   { name: 'Hindi', native: 'हिन्दी', code: 'hi', voice: 'Kore', greeting: 'नमस्ते! मैं आपका सरकारी योजना सहायक हूँ। मुझसे कुछ भी पूछें।' },
   { name: 'Telugu', native: 'తెలుగు', code: 'te', voice: 'Zephyr', greeting: 'నమస్కారం! నేను మీ గోవ్-స్మార్ట్ AI సహాయకుడిని. ప్రభుత్వ పథకాల గురించి నన్ను ఏదైనా అడగండి.' },
   { name: 'Marathi', native: 'मराठी', code: 'mr', voice: 'Kore', greeting: 'नमस्कार! मी तुमचा सरकारी योजना सहाय्यक आहे. मला काहीही विचारा.' },
-  { name: 'Tamil', native: 'தமிழ்', code: 'ta', voice: 'Zephyr', greeting: 'வணக்கம்! நான் உங்கள் அரசு திட்ட உதவியாளர். என்னிடம் எது வேண்டுமானாலும் கேளுங்கள்.' },
+  { name: 'Tamil', native: 'தமிழ்', code: 'ta', voice: 'Zephyr', greeting: 'வணக்கம்! நான் உங்கள் அரசு திட்ட உதவியாளர். என்னிடம் எது வேண்டுமானாலும் కేளுங்கள்.' },
 ];
 
 function decodeBase64ToUint8(base64: string) {
@@ -68,6 +69,9 @@ const ChatWidget: React.FC = () => {
   const recognitionRef = useRef<any>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const currentTtsTextRef = useRef<string | null>(null);
+  const transcriptBufferRef = useRef<string>('');
+  const isListeningRef = useRef(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const initAudio = async () => {
     if (!audioContextRef.current) {
@@ -78,7 +82,6 @@ const ChatWidget: React.FC = () => {
     }
   };
 
-  // Global listener for opening the chat
   useEffect(() => {
     const handleOpenChat = () => {
       setIsOpen(true);
@@ -101,32 +104,82 @@ const ChatWidget: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = selectedLang.code === 'en' ? 'en-IN' : `${selectedLang.code}-IN`;
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onend = () => setIsListening(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
     }
+  }, [input]);
+
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = selectedLang.code === 'en' ? 'en-IN' : `${selectedLang.code}-IN`;
+
+    recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          transcriptBufferRef.current += event.results[i][0].transcript + ' ';
+        } else {
+          interimTranscript += event.results[i][0].transcript;
+        }
+      }
+      setInput(transcriptBufferRef.current + interimTranscript);
+    };
+
+    recognition.onerror = (event: any) => {
+      if (event.error === 'aborted') return;
+      console.error("Speech Recognition Error:", event.error);
+      setIsListening(false);
+      isListeningRef.current = false;
+    };
+    
+    recognition.onend = () => {
+      if (isListeningRef.current) {
+        try {
+          recognition.start();
+        } catch (e) {}
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      isListeningRef.current = false;
+      recognition.onend = null;
+      recognition.onerror = null;
+      try {
+        recognition.stop();
+      } catch (e) {}
+    };
   }, [selectedLang]);
 
   const toggleListening = async () => {
     await initAudio();
     if (isListening) {
-      recognitionRef.current?.stop();
+      stopListening();
     } else {
+      transcriptBufferRef.current = input ? input + ' ' : '';
       setIsListening(true);
-      recognitionRef.current?.start();
+      isListeningRef.current = true;
+      try {
+        recognitionRef.current?.start();
+      } catch (e) {
+        console.warn("Recognition start failed:", e);
+      }
     }
+  };
+
+  const stopListening = () => {
+    setIsListening(false);
+    isListeningRef.current = false;
+    try {
+      recognitionRef.current?.stop();
+    } catch (e) {}
   };
 
   const stopAudioSilently = () => {
@@ -164,6 +217,7 @@ const ChatWidget: React.FC = () => {
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: cleanText }] }],
         config: {
+          // Fix: Use Modality.AUDIO from @google/genai as per guidelines
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
@@ -210,7 +264,13 @@ const ChatWidget: React.FC = () => {
     if (!input.trim() || isLoading) return;
 
     const userQuery = input;
+
+    if (isListening) {
+      stopListening();
+    }
+
     setInput('');
+    transcriptBufferRef.current = '';
     setMessages(prev => [...prev, { role: 'user', text: userQuery }]);
     setIsLoading(true);
     stopAudioSilently();
@@ -225,14 +285,19 @@ const ChatWidget: React.FC = () => {
         contents: userQuery,
         config: {
           thinkingConfig: { thinkingBudget: 0 },
-          systemInstruction: `You are the "Gov-Smart Expert". Respond in ${selectedLang.name}.
-          Context: ${contextScheme ? `User is viewing: "${contextScheme.title}".` : 'General portal.'}
-          Rule: Be snappy. Use short sentences. Avoid complex formatting. For ${selectedLang.name}, keep it natural but concise.`
+          systemInstruction: `You are the "Gov-Smart AI Expert". Respond in ${selectedLang.name}.
+          Context: ${contextScheme ? `User is viewing: "${contextScheme.title}".` : 'General portal portal.'}
+          Rule: Be snappy, professional, and very concise. Use short sentences. Provide accurate scheme information. For ${selectedLang.name}, keep it natural but snappy.`
         }
       });
       
+      // Fix: response.text is a property, ensuring correct access without calling it as a function
       const aiResponse = response.text || "I'm sorry, I couldn't process that.";
       setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
+
+      // ALWAYS automatically speak the response as requested
+      handleTTS(aiResponse);
+
     } catch (error) {
       setMessages(prev => [...prev, { role: 'ai', text: "Service busy. Please try again later." }]);
     } finally {
@@ -340,12 +405,7 @@ const ChatWidget: React.FC = () => {
                           ) : (
                             <Volume2 size={14} />
                           )}
-                          
-                          {isTtsLoading === msg.text 
-                            ? 'Processing...' 
-                            : (isPlaying && currentTtsTextRef.current === msg.text) 
-                              ? 'Stop Voice' 
-                              : 'Listen Guide'}
+                          {isTtsLoading === msg.text ? 'Processing...' : (isPlaying && currentTtsTextRef.current === msg.text) ? 'Stop Voice' : 'Listen'}
                         </button>
                       </div>
                     )}
@@ -368,40 +428,42 @@ const ChatWidget: React.FC = () => {
           </div>
 
           {/* Input Area */}
-          <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-gray-50 flex items-center gap-3 shrink-0">
-            <div className="relative flex-1">
-              <input 
-                type="text" 
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your question..."
-                className="
-                  w-full pl-5 pr-11 py-4 bg-gray-50 border border-transparent rounded-2xl 
-                  text-sm font-semibold text-[#1e293b] focus:bg-white focus:border-orange-100 outline-none transition-all
-                "
-              />
+          <div className="p-4 bg-white border-t border-gray-50 flex flex-col gap-3 shrink-0">
+            {isListening && (
+              <div className="flex items-center justify-center gap-3 px-4 py-2 bg-red-50 text-red-600 rounded-2xl animate-pulse mb-1">
+                <Waves size={16} className="animate-bounce" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Listening... Click Send when ready</span>
+              </div>
+            )}
+            
+            <form onSubmit={handleSendMessage} className="flex items-center gap-3">
+              <div className="relative flex-1 bg-gray-50 rounded-2xl border border-transparent focus-within:bg-white focus-within:border-orange-100 transition-all flex items-center">
+                <textarea 
+                  ref={textareaRef}
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={isListening ? "Transcribing..." : "Ask something..."}
+                  className="w-full pl-5 pr-12 py-3.5 bg-transparent text-sm font-semibold text-[#1e293b] outline-none resize-none max-h-32 overflow-y-auto custom-scrollbar"
+                />
+                <button 
+                  type="button" 
+                  onClick={toggleListening} 
+                  className={`absolute right-1 w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isListening ? 'bg-red-500 text-white shadow-lg' : 'text-gray-400 hover:text-navy'}`}
+                >
+                  {isListening ? <Square size={14} fill="white" /> : <Mic size={20} />}
+                </button>
+              </div>
+              
               <button 
-                type="button" 
-                onClick={toggleListening} 
-                className={`
-                  absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-xl flex items-center justify-center transition-all
-                  ${isListening ? 'bg-red-500 text-white shadow-lg animate-pulse' : 'text-gray-400 hover:text-navy'}
-                `}
+                type="submit" 
+                disabled={!input.trim() || isLoading} 
+                className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-lg active:scale-95 bg-[#1e293b] text-white hover:bg-orange-primary disabled:opacity-20"
               >
-                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                <SendHorizontal size={20} />
               </button>
-            </div>
-            <button 
-              type="submit" 
-              disabled={!input.trim() || isLoading} 
-              className="
-                w-12 h-12 bg-[#1e293b] text-white rounded-2xl flex items-center justify-center 
-                hover:bg-orange-primary disabled:opacity-20 transition-all shadow-lg active:scale-95
-              "
-            >
-              <SendHorizontal size={20} />
-            </button>
-          </form>
+            </form>
+          </div>
         </div>
       )}
 
