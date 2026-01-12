@@ -24,7 +24,6 @@ const ScrollToTop = () => {
 };
 
 // Component to protect routes that require authentication
-// Fix: Use optional children to resolve "Property 'children' is missing in type '{}'" errors in some TSX environments
 const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const location = useLocation();
@@ -59,12 +58,13 @@ const App: React.FC = () => {
         <Navbar />
         <main className="flex-grow">
           <Routes>
-            {/* Public Routes */}
+            {/* Public Routes - Accessible to everyone */}
             <Route path="/" element={<Home />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/faqs" element={<FAQs />} />
             <Route path="/auth" element={<Auth />} />
 
-            {/* Protected Routes */}
+            {/* Protected Routes - Require Authentication */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
@@ -83,11 +83,6 @@ const App: React.FC = () => {
             <Route path="/scheme/:id" element={
               <ProtectedRoute>
                 <SchemeDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/faqs" element={
-              <ProtectedRoute>
-                <FAQs />
               </ProtectedRoute>
             } />
             <Route path="/settings" element={
