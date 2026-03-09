@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/* Custom styles from index.html can be moved here if needed */
+body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: #f9fafb;
+    scroll-behavior: smooth;
+}
+.bg-navy { background-color: #1e293b; }
+.text-navy { color: #1e293b; }
+.bg-orange-primary { background-color: #f97316; }
+.text-orange-primary { color: #f97316; }
+
+::selection {
+    background-color: #1e293b;
+    color: #ffffff;
+}
+
+input, 
+textarea, 
+[contenteditable="true"],
+.cursor-text {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
+    caret-color: #1e293b !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+}
+
+button, 
+a, 
+select,
+[role="button"],
+.cursor-pointer {
+    cursor: pointer !important;
+}
+
+input:focus, 
+textarea:focus {
+    outline: none;
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }

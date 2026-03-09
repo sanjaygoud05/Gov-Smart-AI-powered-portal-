@@ -22,94 +22,10 @@
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/short-term/release/googleglyphs/smart_display/default/24px.svg">
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            background-color: #f9fafb;
-            scroll-behavior: smooth;
-        }
-        .bg-navy { background-color: #1e293b; }
-        .text-navy { color: #1e293b; }
-        .bg-orange-primary { background-color: #f97316; }
-        .text-orange-primary { color: #f97316; }
-        
-        /* 
-           THEME SELECTION COLOR
-           Ensures text selection matches the navy theme
-        */
-        ::selection {
-            background-color: #1e293b;
-            color: #ffffff;
-        }
-
-        /* 
-           CRITICAL FIX: CUSTOM NAVY CURSOR
-           Forces a Navy-colored SVG I-beam cursor for all text inputs.
-           The SVG is an I-beam (text cursor) shape in #1e293b.
-        */
-        input, 
-        textarea, 
-        [contenteditable="true"],
-        .cursor-text {
-            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
-            caret-color: #1e293b !important;
-            -webkit-user-select: text !important;
-            user-select: text !important;
-        }
-
-        /* Standard pointer for buttons and links */
-        button, 
-        a, 
-        select,
-        [role="button"],
-        .cursor-pointer {
-            cursor: pointer !important;
-        }
-
-        /* Ensure cursor remains custom even on focus */
-        input:focus, 
-        textarea:focus {
-            outline: none;
-            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath fill='%231e293b' d='M7 4h2v16H7V4z M4 4h8v1H4V4z M4 19h8v1H4v-1z'/%3E%3C/svg%3E") 8 12, text !important;
-        }
-
-        /* Smooth Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-
-        /* Performance Fix for Mobile Tap Highlight */
-        * { -webkit-tap-highlight-color: transparent; }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
-    "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js",
-    "firebase/": "https://esm.sh/firebase@^12.7.0/"
-  }
-}
-</script>
 </head>
 <body>
     <div id="root"></div>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
