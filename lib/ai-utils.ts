@@ -10,7 +10,8 @@ export async function generateContentWithRetry(
   maxRetries: number = 3,
   initialDelay: number = 1000
 ): Promise<GenerateContentResponse> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+  const ai = new GoogleGenAI({ apiKey });
   let lastError: any;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {

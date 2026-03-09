@@ -11,10 +11,9 @@ export const searchSchemesAI = async (query: string) => {
   const currentDate = new Date().toISOString().split('T')[0]; // e.g., 2026-03-08
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: `Current Date: ${currentDate}. Search Query: "${query}". Identify all relevant active official government schemes.`,
       config: {
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         systemInstruction: `You are the "Gov-Smart Navigator". 
         Your task is to identify relevant official government schemes from the provided database.
         
@@ -76,10 +75,9 @@ export const getAIRecommendations = async (profile: any) => {
   const currentDate = new Date().toISOString().split('T')[0];
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: `Current Date: ${currentDate}. CITIZEN PROFILE: ${JSON.stringify(profile)}. Find every official scheme they qualify for.`,
       config: {
-        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         systemInstruction: `You are the "Gov-Smart Eligibility Engine". 
         Your goal is to match this citizen to ALL official government welfare programs they qualify for.
 

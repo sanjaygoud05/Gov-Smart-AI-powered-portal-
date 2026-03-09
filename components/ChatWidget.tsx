@@ -321,10 +321,9 @@ const ChatWidget: React.FC = () => {
 
     try {
       const response = await generateContentWithRetry({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-flash-latest',
         contents: userQuery,
         config: {
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). 
           Language: ${selectedLang.name}.
           When asked about applying for a scheme, always mention that the user should click the "Apply Now" button on the scheme details page to visit the official government portal. 
