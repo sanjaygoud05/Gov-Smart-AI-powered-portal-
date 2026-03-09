@@ -63,6 +63,14 @@ const ChatWidget: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTtsLoading, setIsTtsLoading] = useState<string | null>(null);
+  const [isKeyMissing, setIsKeyMissing] = useState(false);
+
+  useEffect(() => {
+    const rawKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+    if (!rawKey || rawKey === "undefined" || rawKey === "null") {
+      setIsKeyMissing(true);
+    }
+  }, []);
   const [isListening, setIsListening] = useState(false);
   const [volume, setVolume] = useState(0);
   
@@ -321,7 +329,7 @@ const ChatWidget: React.FC = () => {
 
     try {
       const response = await generateContentWithRetry({
-        model: 'gemini-flash-latest',
+        model: 'gemini-3-flash-preview',
         contents: userQuery,
         config: {
           systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). 
@@ -364,8 +372,10 @@ const ChatWidget: React.FC = () => {
               <div className="flex flex-col">
                 <h3 className="text-white font-bold text-sm tracking-tight">AI Assistant</h3>
                 <div className="flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isListening ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`}></span>
-                  <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">{isListening ? 'Voice Mode' : 'Ready'}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isKeyMissing ? 'bg-red-500' : isListening ? 'bg-orange-500 animate-pulse' : 'bg-green-500'}`}></span>
+                  <span className="text-[9px] text-gray-400 font-black uppercase tracking-widest">
+                    {isKeyMissing ? 'Offline' : isListening ? 'Voice Mode' : 'Ready'}
+                  </span>
                 </div>
               </div>
             </div>

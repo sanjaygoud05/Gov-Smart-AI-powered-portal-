@@ -10,7 +10,13 @@ export async function generateContentWithRetry(
   maxRetries: number = 3,
   initialDelay: number = 1000
 ): Promise<GenerateContentResponse> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+  const rawKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+  const apiKey = (rawKey === "undefined" || rawKey === "null") ? "" : rawKey;
+  
+  if (!apiKey) {
+    console.error("Gemini API Key is missing. Please ensure GEMINI_API_KEY is set in the environment.");
+  }
+
   const ai = new GoogleGenAI({ apiKey });
   let lastError: any;
 
