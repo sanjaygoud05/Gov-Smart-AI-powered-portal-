@@ -22,7 +22,8 @@ const Settings: React.FC = () => {
     age: '',
     occupation: '',
     income: '',
-    category: 'General'
+    category: 'General',
+    gender: 'Male'
   });
 
   useEffect(() => {

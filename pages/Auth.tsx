@@ -88,8 +88,10 @@ const Auth: React.FC = () => {
           const authError = err as AuthError;
           if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
             setError("Password or Email Incorrect");
+          } else if (authError.code === 'auth/too-many-requests') {
+            setError("Too many failed login attempts. Please try again later.");
           } else {
-            setError("An error occurred during sign in. Please try again.");
+            setError(authError.message || "An error occurred during sign in. Please try again.");
           }
           setLoading(false);
         }
@@ -110,6 +112,7 @@ const Auth: React.FC = () => {
               last_name: '',
               email: user.email,
               age: '',
+              gender: 'Other',
               state: '',
               occupation: '',
               income: '',
@@ -128,14 +131,28 @@ const Auth: React.FC = () => {
           const authError = err as AuthError;
           if (authError.code === 'auth/email-already-in-use') {
             setError('User already exists. Sign in?');
+          } else if (authError.code === 'auth/operation-not-allowed') {
+            setError('Email/Password sign-in is not enabled. Please contact support or try again later.');
           } else {
-            setError(authError.message || 'An error occurred during registration.');
+            // Check if it's a JSON error from handleFirestoreError
+            try {
+              const parsed = JSON.parse(err.message);
+              setError(`Database Error: ${parsed.error}`);
+            } catch {
+              setError(authError.message || 'An error occurred during registration.');
+            }
           }
           setLoading(false);
         }
       }
     } catch (err: any) {
-      setError('An unexpected error occurred. Please try again.');
+      // Check if it's a JSON error from handleFirestoreError
+      try {
+        const parsed = JSON.parse(err.message);
+        setError(`Database Error: ${parsed.error}`);
+      } catch {
+        setError('An unexpected error occurred. Please try again.');
+      }
       setLoading(false);
     }
   };

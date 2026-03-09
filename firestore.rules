@@ -50,9 +50,11 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUserProfile(data) {
-      return hasOnlyAllowedFields(['first_name', 'last_name', 'email', 'age', 'gender', 'state', 'occupation', 'income', 'category', 'created_at']) &&
+      return hasOnlyAllowedFields(['first_name', 'last_name', 'email', 'age', 'gender', 'state', 'occupation', 'income', 'category', 'created_at', 'street_address', 'city']) &&
              (data.get('first_name', '') is string && data.get('first_name', '').size() < 100) &&
              (data.get('last_name', '') is string && data.get('last_name', '').size() < 100) &&
+             (data.get('street_address', '') is string && data.get('street_address', '').size() < 200) &&
+             (data.get('city', '') is string && data.get('city', '').size() < 100) &&
              (data.email is string && isValidEmail(data.email)) &&
              (data.get('age', 0) is int || data.get('age', '') == '') &&
              (data.get('gender', 'Male') in ['Male', 'Female', 'Other']) &&
