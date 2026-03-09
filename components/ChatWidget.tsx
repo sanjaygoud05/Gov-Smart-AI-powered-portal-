@@ -6,8 +6,9 @@ import {
   Globe, Sparkles, VolumeX, SendHorizontal, Loader2,
   Square, Waves
 } from 'lucide-react';
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
 import { MOCK_SCHEMES } from '../constants';
+import { generateContentWithRetry, generateTTSWithRetry } from '../lib/ai-utils';
 
 type LanguageOption = {
   name: string;
@@ -258,12 +259,9 @@ const ChatWidget: React.FC = () => {
     setIsTtsLoading(text);
     currentTtsTextRef.current = text;
     
-    const ctx = audioContextRef.current!;
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
     try {
       const cleanText = text.replace(/[*#_`]/g, '').replace(/\([^)]*\)/g, '').trim().slice(0, 1000); 
-      const response = await ai.models.generateContent({
+      const response = await generateTTSWithRetry({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: cleanText }] }],
         config: {
@@ -281,6 +279,7 @@ const ChatWidget: React.FC = () => {
 
       if (base64Audio) {
         const bytes = decodeBase64ToUint8(base64Audio);
+        const ctx = audioContextRef.current!;
         const audioBuffer = await decodeRawPcm(bytes, ctx, 24000);
         const source = ctx.createBufferSource();
         source.buffer = audioBuffer;
@@ -317,16 +316,15 @@ const ChatWidget: React.FC = () => {
     setIsLoading(true);
     stopAudioSilently();
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const schemeMatch = location.pathname.match(/\/scheme\/([^/]+)/);
     const contextScheme = schemeMatch ? MOCK_SCHEMES.find(s => s.id === schemeMatch[1]) : null;
 
     try {
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithRetry({
         model: 'gemini-3-flash-preview',
         contents: userQuery,
         config: {
-          thinkingConfig: { thinkingBudget: 0 },
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
           systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). 
           Language: ${selectedLang.name}.
           When asked about applying for a scheme, always mention that the user should click the "Apply Now" button on the scheme details page to visit the official government portal. 
@@ -336,8 +334,12 @@ const ChatWidget: React.FC = () => {
       const aiResponse = response.text || "I couldn't process that.";
       setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
       handleTTS(aiResponse);
-    } catch (error) {
-      setMessages(prev => [...prev, { role: 'ai', text: "Service busy." }]);
+    } catch (error: any) {
+      let errorMessage = "I'm having trouble connecting right now. Please try again in a moment.";
+      if (error?.message?.includes("429") || error?.message?.toLowerCase().includes("busy")) {
+        errorMessage = "The service is currently very busy. Please wait a few seconds and try again.";
+      }
+      setMessages(prev => [...prev, { role: 'ai', text: errorMessage }]);
     } finally {
       setIsLoading(false);
     }

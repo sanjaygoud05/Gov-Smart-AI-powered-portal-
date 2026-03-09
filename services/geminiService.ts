@@ -1,19 +1,20 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
 import { MOCK_SCHEMES } from "../constants";
+import { generateContentWithRetry } from "../lib/ai-utils";
 
 /**
  * Searches for relevant schemes using Gemini AI.
  * Focuses on active, non-expired official schemes.
  */
 export const searchSchemesAI = async (query: string) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const currentDate = new Date().toISOString().split('T')[0]; // e.g., 2026-03-08
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry({
       model: 'gemini-3-flash-preview',
       contents: `Current Date: ${currentDate}. Search Query: "${query}". Identify all relevant active official government schemes.`,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         systemInstruction: `You are the "Gov-Smart Navigator". 
         Your task is to identify relevant official government schemes from the provided database.
         
@@ -72,13 +73,13 @@ export const searchSchemesAI = async (query: string) => {
  * against all active scheme criteria in the database.
  */
 export const getAIRecommendations = async (profile: any) => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const currentDate = new Date().toISOString().split('T')[0];
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry({
       model: 'gemini-3-flash-preview',
       contents: `Current Date: ${currentDate}. CITIZEN PROFILE: ${JSON.stringify(profile)}. Find every official scheme they qualify for.`,
       config: {
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
         systemInstruction: `You are the "Gov-Smart Eligibility Engine". 
         Your goal is to match this citizen to ALL official government welfare programs they qualify for.
 

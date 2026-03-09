@@ -10,14 +10,16 @@ service cloud.firestore {
     // Fields:
     //   - first_name: string (optional)
     //   - last_name: string (optional)
-    //   - email: string (required, email format)
-    //   - age: int (optional)
-    //   - gender: string (optional, enum: Male, Female, Other)
+    //   - email: string (optional)
+    //   - age: int or string (optional)
+    //   - gender: string (optional)
     //   - state: string (optional)
+    //   - city: string (optional)
+    //   - street_address: string (optional)
     //   - occupation: string (optional)
     //   - income: string (optional)
-    //   - category: string (optional, enum: General, OBC, SC, ST)
-    //   - created_at: string (required, ISO 8601)
+    //   - category: string (optional)
+    //   - created_at: string (optional)
     //
     // ===============================================================
 
@@ -50,19 +52,20 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidUserProfile(data) {
-      return hasOnlyAllowedFields(['first_name', 'last_name', 'email', 'age', 'gender', 'state', 'occupation', 'income', 'category', 'created_at', 'street_address', 'city']) &&
+      let allowedFields = ['first_name', 'last_name', 'email', 'age', 'gender', 'state', 'city', 'street_address', 'occupation', 'income', 'category', 'created_at'];
+      return hasOnlyAllowedFields(allowedFields) &&
              (data.get('first_name', '') is string && data.get('first_name', '').size() < 100) &&
              (data.get('last_name', '') is string && data.get('last_name', '').size() < 100) &&
-             (data.get('street_address', '') is string && data.get('street_address', '').size() < 200) &&
-             (data.get('city', '') is string && data.get('city', '').size() < 100) &&
-             (data.email is string && isValidEmail(data.email)) &&
-             (data.get('age', 0) is int || data.get('age', '') == '') &&
+             (!('email' in data) || (data.email is string && isValidEmail(data.email))) &&
+             (data.get('age', 0) is int || data.get('age', '') is string) &&
              (data.get('gender', 'Male') in ['Male', 'Female', 'Other']) &&
              (data.get('state', '') is string && data.get('state', '').size() < 100) &&
+             (data.get('city', '') is string && data.get('city', '').size() < 100) &&
+             (data.get('street_address', '') is string && data.get('street_address', '').size() < 200) &&
              (data.get('occupation', '') is string && data.get('occupation', '').size() < 100) &&
              (data.get('income', '') is string && data.get('income', '').size() < 100) &&
              (data.get('category', 'General') in ['General', 'OBC', 'SC', 'ST']) &&
-             (data.created_at is string && isValidDateString(data.created_at));
+             (!('created_at' in data) || (data.created_at is string && isValidDateString(data.created_at)));
     }
 
     // ===============================================================
@@ -72,9 +75,7 @@ service cloud.firestore {
     match /profiles/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && isValidUserProfile(request.resource.data);
-      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data) && 
-                      request.resource.data.email == resource.data.email &&
-                      request.resource.data.created_at == resource.data.created_at;
+      allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
     }
 
     // Default deny

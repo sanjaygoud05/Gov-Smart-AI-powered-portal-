@@ -98,7 +98,9 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border border-gray-100 shadow-sm">
             <CalendarDays size={18} className="text-orange-500" />
-            <span className="text-xs font-black text-navy uppercase tracking-wider">January 2024</span>
+            <span className="text-xs font-black text-navy uppercase tracking-wider">
+              {new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date())}
+            </span>
           </div>
         </div>
 
