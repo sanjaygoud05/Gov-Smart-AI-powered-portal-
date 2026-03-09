@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { User, MapPin, Calendar, Tag, Save, ChevronLeft, Sparkles, Loader2, Briefcase, Wallet } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { INDIAN_STATES_UTS, OCCUPATIONS } from '../constants';
 
 const Settings: React.FC = () => {
@@ -20,43 +21,42 @@ const Settings: React.FC = () => {
     city: '',
     state: '',
     age: '',
+    gender: 'Other',
     occupation: '',
     income: '',
-    category: 'General',
-    gender: 'Male'
+    category: 'General'
   });
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      if (!savedUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
         navigate('/auth');
         return;
       }
-      const parsedUser = JSON.parse(savedUser);
-      setUser(parsedUser);
+      setUser(currentUser);
       
       try {
-        const docRef = doc(db, "profiles", parsedUser.id);
+        const docRef = doc(db, "profiles", currentUser.uid);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setProfile({ ...profile, ...docSnap.data() });
+          setProfile(prev => ({ ...prev, ...docSnap.data() }));
         } else {
           // Initialize default if doesn't exist
           setProfile(prev => ({
             ...prev,
-            first_name: parsedUser.username || '',
+            first_name: currentUser.displayName?.split(' ')[0] || '',
+            last_name: currentUser.displayName?.split(' ')[1] || '',
           }));
         }
       } catch (err) {
-        console.error("Error fetching profile from Firestore:", err);
+        handleFirestoreError(err, OperationType.GET, `profiles/${currentUser.uid}`);
       } finally {
         setLoading(false);
       }
-    };
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -69,11 +69,11 @@ const Settings: React.FC = () => {
     setMessage(null);
 
     try {
-      const docRef = doc(db, "profiles", user.id);
+      const docRef = doc(db, "profiles", user.uid);
       await setDoc(docRef, profile, { merge: true });
       setMessage({ type: 'success', text: 'Profile updated in cloud successfully!' });
     } catch (err: any) {
-      console.error("Save error:", err);
+      handleFirestoreError(err, OperationType.WRITE, `profiles/${user.uid}`);
       setMessage({ type: 'error', text: 'Failed to update cloud profile' });
     } finally {
       setSaving(false);
@@ -156,19 +156,34 @@ const Settings: React.FC = () => {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className={labelClass}>Category</label>
+                    <label className={labelClass}>Gender</label>
                     <div className="relative">
-                      <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                       <select 
-                        name="category" value={profile.category} onChange={handleChange}
+                        name="gender" value={profile.gender} onChange={handleChange}
                         className={`${commonInputClass} appearance-none cursor-pointer`}
                       >
-                        <option value="General">General</option>
-                        <option value="OBC">OBC</option>
-                        <option value="SC">SC</option>
-                        <option value="ST">ST</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className={labelClass}>Category</label>
+                  <div className="relative">
+                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <select 
+                      name="category" value={profile.category} onChange={handleChange}
+                      className={`${commonInputClass} appearance-none cursor-pointer`}
+                    >
+                      <option value="General">General</option>
+                      <option value="OBC">OBC</option>
+                      <option value="SC">SC</option>
+                      <option value="ST">ST</option>
+                    </select>
                   </div>
                 </div>
 

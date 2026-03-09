@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Bookmark, ChevronLeft, ChevronRight, Search, Trash2, Clock, Zap, ArrowRight } from 'lucide-react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import { MOCK_SCHEMES } from '../constants';
 import { Scheme } from '../types';
 
@@ -11,9 +13,8 @@ const SavedSchemes: React.FC = () => {
   const [savedSchemes, setSavedSchemes] = useState<Scheme[]>([]);
 
   useEffect(() => {
-    const fetchSaved = async () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      if (!savedUser) {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
         navigate('/auth');
         return;
       }
@@ -22,9 +23,9 @@ const SavedSchemes: React.FC = () => {
       const filtered = MOCK_SCHEMES.filter(s => savedIds.includes(s.id));
       setSavedSchemes(filtered);
       setLoading(false);
-    };
+    });
 
-    fetchSaved();
+    return () => unsubscribe();
   }, [navigate]);
 
   const removeScheme = (id: string) => {

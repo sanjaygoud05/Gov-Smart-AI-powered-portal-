@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, User, Menu, X, ChevronRight, LogOut, Settings, ChevronDown, Bookmark, LayoutDashboard } from 'lucide-react';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 const Navbar: React.FC = () => {
@@ -16,19 +16,16 @@ const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   useEffect(() => {
-    const checkUser = () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
       } else {
         setUser(null);
       }
-    };
+    });
 
-    checkUser();
-    window.addEventListener('storage', checkUser);
-    return () => window.removeEventListener('storage', checkUser);
-  }, [location.pathname]);
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -43,11 +40,9 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.removeItem('gov_smart_user');
       setUser(null);
       setIsProfileOpen(false);
       navigate('/');
-      window.dispatchEvent(new Event('storage'));
     } catch (err) {
       console.error("Error signing out: ", err);
     }
@@ -60,7 +55,7 @@ const Navbar: React.FC = () => {
     { name: 'FAQs', path: '/faqs' },
   ];
 
-  const userDisplayName = user?.username || 'User';
+  const userDisplayName = user?.displayName || user?.email?.split('@')[0] || 'User';
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">

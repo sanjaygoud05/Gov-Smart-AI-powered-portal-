@@ -61,30 +61,6 @@ const FindSchemes: React.FC = () => {
         } catch (err) {
           handleFirestoreError(err, OperationType.GET, path);
         }
-      } else {
-        // If not logged in to Firebase, try local storage as fallback
-        const savedUser = localStorage.getItem('gov_smart_user');
-        if (savedUser) {
-          const localUser = JSON.parse(savedUser);
-          // Still try to fetch if we have an ID, but it might fail due to rules
-          try {
-            const docRef = doc(db, "profiles", localUser.id);
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-              const parsed = docSnap.data();
-              setProfile({
-                age: parsed.age ? parseInt(parsed.age) : undefined,
-                gender: parsed.gender || 'Male',
-                state: parsed.state || '',
-                occupation: parsed.occupation || '',
-                income: parsed.income || '',
-                category: parsed.category || 'General'
-              });
-            }
-          } catch (err) {
-            console.error("Error fetching cloud profile from local storage ID:", err);
-          }
-        }
       }
     });
     return () => unsubscribe();

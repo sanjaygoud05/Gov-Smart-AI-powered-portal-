@@ -20,7 +20,8 @@ import {
   Globe
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { MOCK_SCHEMES } from '../constants';
 
 const Dashboard: React.FC = () => {
@@ -30,36 +31,33 @@ const Dashboard: React.FC = () => {
   const [savedCount, setSavedCount] = useState(0);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      if (!savedUser) {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) {
         navigate('/auth');
         return;
       }
-
-      const user = JSON.parse(savedUser);
       
       try {
-        const docRef = doc(db, "profiles", user.id);
+        const docRef = doc(db, "profiles", user.uid);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
           setProfile(docSnap.data());
         } else {
-          setProfile({ first_name: user.username || 'User' });
+          setProfile({ first_name: user.displayName?.split(' ')[0] || 'User' });
         }
       } catch (err) {
-        console.error("Dashboard profile fetch error:", err);
-        setProfile({ first_name: user.username || 'User' });
+        handleFirestoreError(err, OperationType.GET, `profiles/${user.uid}`);
+        setProfile({ first_name: user.displayName?.split(' ')[0] || 'User' });
       }
       
       const saved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
       setSavedCount(saved.length);
       
       setLoading(false);
-    };
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, [navigate]);
 
   if (loading) {

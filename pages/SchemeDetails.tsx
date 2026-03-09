@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Share2, Calendar, Building2, CheckCircle2, ExternalLink, Bookmark, BookmarkCheck } from 'lucide-react';
+import { auth } from '../lib/firebase';
 import { MOCK_SCHEMES } from '../constants';
 
 const SchemeDetails: React.FC = () => {
@@ -37,8 +38,7 @@ const SchemeDetails: React.FC = () => {
   };
 
   const toggleSave = () => {
-    const savedUser = localStorage.getItem('gov_smart_user');
-    if (!savedUser) {
+    if (!auth.currentUser) {
       navigate('/auth');
       return;
     }

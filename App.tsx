@@ -32,13 +32,7 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setIsAuthenticated(true);
-      } else {
-        // Fallback to local storage if firebase auth is not ready or user is not logged in
-        const savedUser = localStorage.getItem('gov_smart_user');
-        setIsAuthenticated(!!savedUser);
-      }
+      setIsAuthenticated(!!user);
     });
 
     return () => unsubscribe();
