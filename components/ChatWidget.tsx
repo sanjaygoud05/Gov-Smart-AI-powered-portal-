@@ -4,8 +4,9 @@ import { useLocation } from 'react-router-dom';
 import { 
   X, Bot, Volume2, Mic, 
   Globe, Sparkles, VolumeX, SendHorizontal, Loader2,
-  Square, Waves
+  Square, Waves, Trash2, ArrowRight
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
 import { MOCK_SCHEMES } from '../constants';
 import { generateContentWithRetry, generateTTSWithRetry } from '../lib/ai-utils';
@@ -25,6 +26,39 @@ const LANGUAGES: LanguageOption[] = [
   { name: 'Marathi', native: 'मराठी', code: 'mr', voice: 'Kore', greeting: 'नमस्कार! मी तुमचा सरकारी योजना सहाय्यक आहे. मला काहीही विचारा.' },
   { name: 'Tamil', native: 'தமிழ்', code: 'ta', voice: 'Zephyr', greeting: 'வணக்கம்! நான் உங்கள் அரசு திட்ட உதவியாளர். என்னிடம் எது வேண்டுமானாலும் కేளுங்கள்.' },
 ];
+
+const SUGGESTED_QUESTIONS: Record<string, string[]> = {
+  en: [
+    "What are the best schemes for farmers?",
+    "How to apply for PM Kisan?",
+    "Schemes for women entrepreneurs?",
+    "Education loans from government?"
+  ],
+  hi: [
+    "किसानों के लिए सबसे अच्छी योजनाएं क्या हैं?",
+    "पीएम किसान के लिए आवेदन कैसे करें?",
+    "महिला उद्यमियों के लिए योजनाएं?",
+    "सरकार से शिक्षा ऋण?"
+  ],
+  te: [
+    "రైతులకు ఉత్తమ పథకాలు ఏమిటి?",
+    "పీఎం కిసాన్ కోసం ఎలా దరఖాస్తు చేయాలి?",
+    "మహిళా పారిశ్రామికవేత్తల కోసం పథకాలు?",
+    "ప్రభుత్వం నుండి విద్యా రుణాలు?"
+  ],
+  mr: [
+    "शेतकऱ्यांसाठी सर्वोत्तम योजना कोणत्या आहेत?",
+    "पीएम किसानसाठी अर्ज कसा करावा?",
+    "महिला उद्योजकांसाठी योजना?",
+    "शासनाकडून शैक्षणिक कर्ज?"
+  ],
+  ta: [
+    "விவசாயிகளுக்கான சிறந்த திட்டங்கள் யாவை?",
+    "பிஎம் கிசானுக்கு விண்ணப்பிப்பது எப்படி?",
+    "பெண் தொழில்முனைவோருக்கான திட்டங்கள்?",
+    "அரசாங்கத்திடமிருந்து கல்விக்கடன்?"
+  ]
+};
 
 function decodeBase64ToUint8(base64: string) {
   const binaryString = atob(base64);
@@ -67,7 +101,7 @@ const ChatWidget: React.FC = () => {
 
   useEffect(() => {
     const rawKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
-    if (!rawKey || rawKey === "undefined" || rawKey === "null") {
+    if (!rawKey || rawKey === "undefined" || rawKey === "null" || rawKey.includes("TODO")) {
       setIsKeyMissing(true);
     }
   }, []);
@@ -256,6 +290,12 @@ const ChatWidget: React.FC = () => {
     setIsTtsLoading(null);
   };
 
+  const clearChat = () => {
+    setMessages([{ role: 'ai', text: selectedLang.greeting }]);
+    stopAudioSilently();
+    stopListening();
+  };
+
   const handleTTS = async (text: string) => {
     await initAudio();
     if ((isPlaying || isTtsLoading) && currentTtsTextRef.current === text) {
@@ -329,13 +369,44 @@ const ChatWidget: React.FC = () => {
 
     try {
       const response = await generateContentWithRetry({
-        model: 'gemini-3-flash-preview',
-        contents: userQuery,
+        model: 'gemini-flash-latest',
+        contents: [
+          ...messages.slice(-6).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.text }]
+          })),
+          { role: 'user', parts: [{ text: userQuery }] }
+        ],
         config: {
-          systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). 
+          systemInstruction: `You are "Gov-Smart AI", a highly professional, empathetic, and accurate government scheme assistant.
+          Current Date: ${new Date().toLocaleDateString()}
           Language: ${selectedLang.name}.
-          When asked about applying for a scheme, always mention that the user should click the "Apply Now" button on the scheme details page to visit the official government portal. 
-          If you know the official URL (like pmkisan.gov.in), mention it briefly.`
+          
+          CORE PERSONALITY & RULES:
+          1. GREETINGS: If the user says "hi", "hello", "hey", or similar greetings, ALWAYS respond with: "Hi, I'm Gov-Smart AI, how can I help you? I am here to assist you with any information regarding government schemes, eligibility, or application processes. What would you like to know today?" (or the equivalent in the selected language: ${selectedLang.name}).
+          2. ACCURACY: Provide precise information about Indian government schemes based ONLY on the provided database.
+          3. COMPREHENSIVENESS: Every response must be detailed and comprehensive. Avoid very short or one-sentence replies. Even for simple questions, provide context or related helpful information.
+          4. CLARITY: Use Markdown for a "clear-cut view". Use bold text for key terms and bullet points for lists.
+          5. SCHEME DETAILS: When asked about a scheme, provide a full breakdown:
+             - **Overview**: A brief summary of the scheme's purpose.
+             - **Key Benefits**: Detailed list of what the user gets.
+             - **Eligibility Criteria**: Comprehensive list of who can apply.
+             - **How to Apply**: Clear, numbered steps for the application process.
+             - **Required Documents**: List of documents needed.
+          6. CALL TO ACTION: Always guide users to the "Apply Now" button on the scheme details page or mention the official website (e.g., pmkisan.gov.in).
+          7. TONE: Maintain an extremely polite, respectful, and encouraging tone at all times. Use phrases like "I would be happy to help you with...", "Certainly, here is the information...", etc.
+          
+          CONTEXT:
+          The user is currently viewing: ${contextScheme ? contextScheme.title : 'the main portal'}.
+          
+          AVAILABLE SCHEMES (Grounding Data):
+          ${MOCK_SCHEMES.map(s => `- ${s.title}: ${s.description.slice(0, 150)}... (Category: ${s.category})`).join('\n')}
+          
+          RESPONSE FORMATTING:
+          - Use **bold** for emphasis on important terms.
+          - Use *italics* for secondary info or notes.
+          - Use bullet points and numbered lists for all structured data.
+          - Ensure the response is visually organized and easy to scan.`
         }
       });
       const aiResponse = response.text || "I couldn't process that.";
@@ -380,6 +451,13 @@ const ChatWidget: React.FC = () => {
               </div>
             </div>
             <div className="relative z-10 flex items-center gap-1">
+              <button 
+                onClick={clearChat} 
+                title="Clear Chat"
+                className="p-2 text-gray-400 hover:text-red-400 transition-all"
+              >
+                <Trash2 size={18} />
+              </button>
               <button onClick={() => setShowSettings(!showSettings)} className={`p-2 rounded-lg transition-all ${showSettings ? 'bg-white/10 text-orange-400' : 'text-gray-400 hover:text-white'}`}>
                 <Globe size={18} />
               </button>
@@ -410,7 +488,9 @@ const ChatWidget: React.FC = () => {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2`}>
                   <div className={`max-w-[85%] px-5 py-3.5 rounded-2xl text-[14px] shadow-sm ${msg.role === 'user' ? 'bg-[#1e293b] text-white rounded-tr-none' : 'bg-white text-[#1e293b] border border-gray-100 rounded-tl-none font-medium leading-relaxed'}`}>
-                    <div className="whitespace-pre-wrap">{msg.text}</div>
+                    <div className="markdown-body prose prose-sm max-w-none">
+                      <ReactMarkdown>{msg.text}</ReactMarkdown>
+                    </div>
                     {msg.role === 'ai' && (
                       <div className="mt-4 pt-3 border-t border-gray-50">
                         <button onClick={() => handleTTS(msg.text)} disabled={isTtsLoading !== null && isTtsLoading !== msg.text} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${(isPlaying || isTtsLoading === msg.text) && currentTtsTextRef.current === msg.text ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>
@@ -428,6 +508,25 @@ const ChatWidget: React.FC = () => {
                     <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                     <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                     <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce"></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Suggested Questions */}
+              {messages.length < 3 && !isLoading && (
+                <div className="flex flex-col gap-2 pt-2">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 mb-1">Suggested for you</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SUGGESTED_QUESTIONS[selectedLang.code]?.map((q, i) => (
+                      <button
+                        key={i}
+                        onClick={() => { setInput(q); handleSendMessage(); }}
+                        className="text-left px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-[#1e293b] hover:border-orange-200 hover:bg-orange-50 transition-all flex items-center gap-2 group shadow-sm"
+                      >
+                        {q}
+                        <ArrowRight size={12} className="text-orange-400 opacity-0 group-hover:opacity-100 transition-all" />
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}

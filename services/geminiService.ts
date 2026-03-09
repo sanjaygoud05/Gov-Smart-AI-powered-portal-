@@ -11,7 +11,7 @@ export const searchSchemesAI = async (query: string) => {
   const currentDate = new Date().toISOString().split('T')[0]; // e.g., 2026-03-08
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: `Current Date: ${currentDate}. Search Query: "${query}". Identify all relevant active official government schemes.`,
       config: {
         systemInstruction: `You are the "Gov-Smart Navigator". 
@@ -75,7 +75,7 @@ export const getAIRecommendations = async (profile: any) => {
   const currentDate = new Date().toISOString().split('T')[0];
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-3-flash-preview',
+      model: 'gemini-flash-latest',
       contents: `Current Date: ${currentDate}. CITIZEN PROFILE: ${JSON.stringify(profile)}. Find every official scheme they qualify for.`,
       config: {
         systemInstruction: `You are the "Gov-Smart Eligibility Engine". 
