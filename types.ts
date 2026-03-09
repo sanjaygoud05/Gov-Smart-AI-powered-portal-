@@ -7,6 +7,7 @@ export interface Scheme {
   level: 'Central' | 'State';
   ministry: string;
   updatedAt: string;
+  expiryDate?: string; // ISO format YYYY-MM-DD or 'N/A'
   objectives: string[];
   benefits: string[];
   eligibility: string[];

@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user demographic and eligibility information",
+      "type": "object",
+      "properties": {
+        "first_name": { "type": "string", "description": "User's first name" },
+        "last_name": { "type": "string", "description": "User's last name" },
+        "email": { "type": "string", "format": "email", "description": "User's email address" },
+        "age": { "type": "integer", "description": "User's age" },
+        "gender": { "type": "string", "enum": ["Male", "Female", "Other"], "description": "User's gender" },
+        "state": { "type": "string", "description": "User's state of residence" },
+        "occupation": { "type": "string", "description": "User's occupation" },
+        "income": { "type": "string", "description": "User's annual family income range" },
+        "category": { "type": "string", "enum": ["General", "OBC", "SC", "ST"], "description": "User's caste category" },
+        "created_at": { "type": "string", "format": "date-time", "description": "Timestamp when profile was created" }
+      },
+      "required": ["email", "created_at"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document indexed by Firebase Auth UID"
+    }
+  }
+}

@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Filter, ChevronLeft, ChevronRight, Check, Sparkles, ChevronDown, RefreshCcw, XCircle, ArrowRight, Globe } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { MOCK_SCHEMES, CATEGORIES, INDIAN_STATES_UTS, OCCUPATIONS } from '../constants';
 import { searchSchemesAI, getAIRecommendations } from '../services/geminiService';
 import { UserProfile, Scheme } from '../types';
@@ -39,12 +40,11 @@ const FindSchemes: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchCloudProfile = async () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      if (savedUser) {
-        const user = JSON.parse(savedUser);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const path = `profiles/${user.uid}`;
         try {
-          const docRef = doc(db, "profiles", user.id);
+          const docRef = doc(db, "profiles", user.uid);
           const docSnap = await getDoc(docRef);
           
           if (docSnap.exists()) {
@@ -59,11 +59,35 @@ const FindSchemes: React.FC = () => {
             });
           }
         } catch (err) {
-          console.error("Error fetching cloud profile for wizard:", err);
+          handleFirestoreError(err, OperationType.GET, path);
+        }
+      } else {
+        // If not logged in to Firebase, try local storage as fallback
+        const savedUser = localStorage.getItem('gov_smart_user');
+        if (savedUser) {
+          const localUser = JSON.parse(savedUser);
+          // Still try to fetch if we have an ID, but it might fail due to rules
+          try {
+            const docRef = doc(db, "profiles", localUser.id);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+              const parsed = docSnap.data();
+              setProfile({
+                age: parsed.age ? parseInt(parsed.age) : undefined,
+                gender: parsed.gender || 'Male',
+                state: parsed.state || '',
+                occupation: parsed.occupation || '',
+                income: parsed.income || '',
+                category: parsed.category || 'General'
+              });
+            }
+          } catch (err) {
+            console.error("Error fetching cloud profile from local storage ID:", err);
+          }
         }
       }
-    };
-    fetchCloudProfile();
+    });
+    return () => unsubscribe();
   }, []);
 
   const isStepValid = () => {
@@ -470,7 +494,7 @@ const FindSchemes: React.FC = () => {
                       <h3 className="text-xl font-bold text-navy mb-4 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">{scheme.title}</h3>
                       <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 mb-8 flex-grow">{scheme.description}</p>
                       <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Updated: {scheme.updatedAt}</div>
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Expires: {scheme.expiryDate || 'N/A'}</div>
                         <div className="text-orange-500">
                           <ChevronRight size={20} />
                         </div>

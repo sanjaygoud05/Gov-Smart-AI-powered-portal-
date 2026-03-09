@@ -170,7 +170,7 @@ const Home: React.FC = () => {
                         <p className="text-gray-600 text-sm mb-8 flex-grow leading-relaxed">{scheme.description}</p>
                         <div className="flex items-center gap-2 text-xs text-gray-400 mb-6">
                             <Clock size={14} />
-                            Updated: {scheme.updatedAt}
+                            Expires: {scheme.expiryDate || 'N/A'}
                         </div>
                         <button 
                           onClick={() => navigate(`/scheme/${scheme.id}`)}

@@ -122,8 +122,8 @@ const SchemeDetails: React.FC = () => {
                     <Calendar size={24} />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Last Updated</div>
-                    <div className="text-navy font-bold">{scheme.updatedAt}</div>
+                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Expires On</div>
+                    <div className="text-navy font-bold">{scheme.expiryDate || 'N/A'}</div>
                   </div>
                 </div>
               </div>
@@ -135,10 +135,17 @@ const SchemeDetails: React.FC = () => {
               { id: 'benefits', title: 'Benefits', data: scheme.benefits, highlight: true },
               { id: 'eligibility', title: 'Eligibility Criteria', data: scheme.eligibility },
               { id: 'documents', title: 'Required Documents', data: scheme.documents, grid: true },
-              { id: 'howToApply', title: 'How to Apply', data: scheme.howToApply, ordered: true }
+              { id: 'howToApply', title: 'Application Process: Step-by-Step', data: scheme.howToApply, ordered: true, isApplication: true }
             ].map((section) => (
-              <div key={section.id} id={section.id} className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-gray-100">
-                <h2 className="text-2xl font-extrabold text-navy mb-8 pb-4 border-b border-gray-50">{section.title}</h2>
+              <div key={section.id} id={section.id} className={`bg-white rounded-3xl p-8 md:p-12 shadow-sm border ${section.isApplication ? 'border-orange-200 ring-4 ring-orange-50/50' : 'border-gray-100'}`}>
+                <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-50">
+                  <h2 className="text-2xl font-extrabold text-navy">{section.title}</h2>
+                  {section.isApplication && (
+                    <div className="flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-wider">
+                      <CheckCircle2 size={12} /> Official Process
+                    </div>
+                  )}
+                </div>
                 {section.grid ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {section.data.map((item, idx) => (
@@ -158,6 +165,20 @@ const SchemeDetails: React.FC = () => {
                         <p className="text-gray-600 font-medium leading-relaxed pt-2">{item}</p>
                       </div>
                     ))}
+                    {section.isApplication && (
+                      <div className="mt-10 p-6 bg-navy rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div className="space-y-1">
+                          <p className="text-white font-bold">Ready to start your application?</p>
+                          <p className="text-gray-400 text-xs">You will be redirected to the official government portal.</p>
+                        </div>
+                        <button 
+                          onClick={handleApply}
+                          className="w-full md:w-auto px-8 py-4 bg-orange-primary hover:bg-orange-600 text-white font-bold rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 active:scale-95"
+                        >
+                          Visit Official Portal <ExternalLink size={18} />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <ul className="space-y-4">

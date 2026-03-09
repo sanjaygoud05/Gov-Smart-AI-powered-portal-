@@ -1,6 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './lib/firebase';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -29,15 +31,17 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = () => {
-      const savedUser = localStorage.getItem('gov_smart_user');
-      setIsAuthenticated(!!savedUser);
-    };
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setIsAuthenticated(true);
+      } else {
+        // Fallback to local storage if firebase auth is not ready or user is not logged in
+        const savedUser = localStorage.getItem('gov_smart_user');
+        setIsAuthenticated(!!savedUser);
+      }
+    });
 
-    checkAuth();
-    // Listen for storage changes to handle login/logout across tabs or state updates
-    window.addEventListener('storage', checkAuth);
-    return () => window.removeEventListener('storage', checkAuth);
+    return () => unsubscribe();
   }, []);
 
   if (isAuthenticated === null) return null; // Wait for initial check
@@ -50,55 +54,59 @@ const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+import ErrorBoundary from './components/ErrorBoundary';
+
 const App: React.FC = () => {
   return (
-    <Router>
-      <ScrollToTop />
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-grow">
-          <Routes>
-            {/* Public Routes - Accessible to everyone */}
-            <Route path="/" element={<Home />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/faqs" element={<FAQs />} />
-            <Route path="/auth" element={<Auth />} />
+    <ErrorBoundary>
+      <Router>
+        <ScrollToTop />
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">
+            <Routes>
+              {/* Public Routes - Accessible to everyone */}
+              <Route path="/" element={<Home />} />
+              <Route path="/how-it-works" element={<HowItWorks />} />
+              <Route path="/faqs" element={<FAQs />} />
+              <Route path="/auth" element={<Auth />} />
 
-            {/* Protected Routes - Require Authentication */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/saved-schemes" element={
-              <ProtectedRoute>
-                <SavedSchemes />
-              </ProtectedRoute>
-            } />
-            <Route path="/find-schemes" element={
-              <ProtectedRoute>
-                <FindSchemes />
-              </ProtectedRoute>
-            } />
-            <Route path="/scheme/:id" element={
-              <ProtectedRoute>
-                <SchemeDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
+              {/* Protected Routes - Require Authentication */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/saved-schemes" element={
+                <ProtectedRoute>
+                  <SavedSchemes />
+                </ProtectedRoute>
+              } />
+              <Route path="/find-schemes" element={
+                <ProtectedRoute>
+                  <FindSchemes />
+                </ProtectedRoute>
+              } />
+              <Route path="/scheme/:id" element={
+                <ProtectedRoute>
+                  <SchemeDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </main>
-        <Footer />
-        <ChatWidget />
-      </div>
-    </Router>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Footer />
+          <ChatWidget />
+        </div>
+      </Router>
+    </ErrorBoundary>
   );
 };
 

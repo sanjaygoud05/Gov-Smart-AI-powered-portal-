@@ -1,0 +1,10 @@
+{
+  "projectId": "governmentschemeschecker",
+  "appId": "1:458880695316:web:32c391c14f1f8dd2e13b01",
+  "apiKey": "AIzaSyA24cuYAY2oYP6pA6ffMVVY0YJwBt6mfAo",
+  "authDomain": "governmentschemeschecker.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-7622ca77-b132-479c-9bbd-aa24ce0c10f5",
+  "storageBucket": "governmentschemeschecker.firebasestorage.app",
+  "messagingSenderId": "458880695316",
+  "measurementId": ""
+}

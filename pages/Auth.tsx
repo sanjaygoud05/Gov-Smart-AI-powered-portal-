@@ -12,7 +12,7 @@ import {
   AuthError
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -103,17 +103,22 @@ const Auth: React.FC = () => {
             await updateProfile(user, { displayName: formData.username });
           }
 
-          await setDoc(doc(db, "profiles", user.uid), {
-            first_name: formData.username || user.email?.split('@')[0],
-            last_name: '',
-            email: user.email,
-            age: '',
-            state: '',
-            occupation: '',
-            income: '',
-            category: 'General',
-            created_at: new Date().toISOString()
-          });
+          const path = `profiles/${user.uid}`;
+          try {
+            await setDoc(doc(db, "profiles", user.uid), {
+              first_name: formData.username || user.email?.split('@')[0],
+              last_name: '',
+              email: user.email,
+              age: '',
+              state: '',
+              occupation: '',
+              income: '',
+              category: 'General',
+              created_at: new Date().toISOString()
+            });
+          } catch (err) {
+            handleFirestoreError(err, OperationType.WRITE, path);
+          }
 
           await sendEmailVerification(user);
           setVerificationEmail(user.email);

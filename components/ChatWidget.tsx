@@ -327,7 +327,10 @@ const ChatWidget: React.FC = () => {
         contents: userQuery,
         config: {
           thinkingConfig: { thinkingBudget: 0 },
-          systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). Language: ${selectedLang.name}.`
+          systemInstruction: `You are "Gov-Smart AI". Be extremely concise (under 30 words). 
+          Language: ${selectedLang.name}.
+          When asked about applying for a scheme, always mention that the user should click the "Apply Now" button on the scheme details page to visit the official government portal. 
+          If you know the official URL (like pmkisan.gov.in), mention it briefly.`
         }
       });
       const aiResponse = response.text || "I couldn't process that.";
