@@ -98,13 +98,52 @@ const ChatWidget: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isTtsLoading, setIsTtsLoading] = useState<string | null>(null);
   const [isKeyMissing, setIsKeyMissing] = useState(false);
+  const [customApiKey, setCustomApiKey] = useState('');
+  const [showKeyInput, setShowKeyInput] = useState(false);
+
+  const checkKey = () => {
+    const rawKey = (import.meta.env.VITE_GEMINI_API_KEY) || 
+                   (process.env.GEMINI_API_KEY) || 
+                   (process.env.API_KEY) || 
+                   (window as any).GEMINI_API_KEY ||
+                   "";
+    
+    const manualKey = localStorage.getItem('CUSTOM_GEMINI_API_KEY');
+    const finalKey = manualKey || rawKey;
+    
+    // Debug log for troubleshooting (masked)
+    const maskedKey = finalKey && finalKey.length > 8 
+      ? `${finalKey.substring(0, 4)}...${finalKey.substring(finalKey.length - 4)}` 
+      : (finalKey ? "INVALID_FORMAT" : "MISSING");
+    console.log("Gov-Smart AI: API Key Detection:", maskedKey);
+                   
+    if (!finalKey || finalKey === "undefined" || finalKey === "null" || finalKey.includes("TODO")) {
+      setIsKeyMissing(true);
+    } else {
+      setIsKeyMissing(false);
+    }
+  };
 
   useEffect(() => {
-    const rawKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
-    if (!rawKey || rawKey === "undefined" || rawKey === "null" || rawKey.includes("TODO")) {
-      setIsKeyMissing(true);
-    }
+    // Robust check for API key in both dev and prod
+    checkKey();
   }, []);
+
+  const saveCustomKey = () => {
+    if (customApiKey.trim().startsWith('AIza')) {
+      localStorage.setItem('CUSTOM_GEMINI_API_KEY', customApiKey.trim());
+      setIsKeyMissing(false);
+      setShowKeyInput(false);
+      setMessages(prev => [...prev, { role: 'ai', text: "API Key updated successfully! You can now chat with me." }]);
+    } else {
+      alert("Please enter a valid Gemini API key (starts with AIza)");
+    }
+  };
+
+  const clearCustomKey = () => {
+    localStorage.removeItem('CUSTOM_GEMINI_API_KEY');
+    window.location.reload();
+  };
   const [isListening, setIsListening] = useState(false);
   const [volume, setVolume] = useState(0);
   
@@ -350,9 +389,25 @@ const ChatWidget: React.FC = () => {
     }
   };
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!input.trim() || isLoading) return;
+
+    if (isKeyMissing) {
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        text: "The Gemini API key is missing or invalid in the deployed environment. \n\n**To fix this:**\n1. Go to the **Settings** (⚙️) menu in AI Studio.\n2. Ensure **GEMINI_API_KEY** is set correctly.\n3. Click **Deploy** or **Share** again to re-build the app with the key included.\n\n**Alternatively, you can enter your own API key below:**" 
+      }]);
+      setShowKeyInput(true);
+      return;
+    }
 
     const userQuery = input;
     if (isListening) stopListening();
@@ -369,9 +424,10 @@ const ChatWidget: React.FC = () => {
 
     try {
       const response = await generateContentWithRetry({
-        model: 'gemini-flash-latest',
+        model: 'gemini-3-flash-preview',
         contents: [
-          ...messages.slice(-6).map(m => ({
+          // Skip the initial AI greeting to ensure history starts with a user message
+          ...messages.slice(1).slice(-6).map(m => ({
             role: m.role === 'user' ? 'user' : 'model',
             parts: [{ text: m.text }]
           })),
@@ -383,40 +439,41 @@ const ChatWidget: React.FC = () => {
           Language: ${selectedLang.name}.
           
           CORE PERSONALITY & RULES:
-          1. GREETINGS: If the user says "hi", "hello", "hey", or similar greetings, ALWAYS respond with: "Hi, I'm Gov-Smart AI, how can I help you? I am here to assist you with any information regarding government schemes, eligibility, or application processes. What would you like to know today?" (or the equivalent in the selected language: ${selectedLang.name}).
+          1. GREETINGS: If the user says "hi", "hello", "hey", or similar greetings, ALWAYS respond with: "Hi, I'm Gov-Smart AI, how can I help you? What would you like to know today?" (or the equivalent in the selected language: ${selectedLang.name}).
           2. ACCURACY: Provide precise information about Indian government schemes based ONLY on the provided database.
-          3. COMPREHENSIVENESS: Every response must be detailed and comprehensive. Avoid very short or one-sentence replies. Even for simple questions, provide context or related helpful information.
+          3. CONCISENESS: Be direct and concise. Answer the user's specific question perfectly without adding unnecessary extra information or long introductions.
           4. CLARITY: Use Markdown for a "clear-cut view". Use bold text for key terms and bullet points for lists.
-          5. SCHEME DETAILS: When asked about a scheme, provide a full breakdown:
-             - **Overview**: A brief summary of the scheme's purpose.
-             - **Key Benefits**: Detailed list of what the user gets.
-             - **Eligibility Criteria**: Comprehensive list of who can apply.
-             - **How to Apply**: Clear, numbered steps for the application process.
-             - **Required Documents**: List of documents needed.
-          6. CALL TO ACTION: Always guide users to the "Apply Now" button on the scheme details page or mention the official website (e.g., pmkisan.gov.in).
-          7. TONE: Maintain an extremely polite, respectful, and encouraging tone at all times. Use phrases like "I would be happy to help you with...", "Certainly, here is the information...", etc.
+          5. SELECTIVE DETAILS: Only provide a full breakdown of a scheme if the user explicitly asks for "details", "everything", or "full info". Otherwise, answer only what was asked (e.g., if they ask for eligibility, give ONLY eligibility).
+          6. CALL TO ACTION: Briefly mention the official website if relevant (e.g., pmkisan.gov.in).
+          7. TONE: Maintain a polite and helpful tone, but stay focused on the answer. Avoid fluff.
           
           CONTEXT:
           The user is currently viewing: ${contextScheme ? contextScheme.title : 'the main portal'}.
           
           AVAILABLE SCHEMES (Grounding Data):
-          ${MOCK_SCHEMES.map(s => `- ${s.title}: ${s.description.slice(0, 150)}... (Category: ${s.category})`).join('\n')}
+          ${MOCK_SCHEMES.map(s => `- ${s.title} (ID: ${s.id}): ${s.description.slice(0, 150)}... (Dept: ${s.departmentName}, Start: ${s.startDate}, End: ${s.expiryDate})`).join('\n')}
           
           RESPONSE FORMATTING:
           - Use **bold** for emphasis on important terms.
-          - Use *italics* for secondary info or notes.
-          - Use bullet points and numbered lists for all structured data.
-          - Ensure the response is visually organized and easy to scan.`
+          - Use bullet points for lists.
+          - Keep paragraphs short and to the point.`
         }
       });
       const aiResponse = response.text || "I couldn't process that.";
       setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
       handleTTS(aiResponse);
     } catch (error: any) {
+      console.error("Chat Error:", error);
       let errorMessage = "I'm having trouble connecting right now. Please try again in a moment.";
-      if (error?.message?.includes("429") || error?.message?.toLowerCase().includes("busy")) {
+      const errorStr = error?.message || String(error);
+      
+      if (errorStr.includes("API_KEY_INVALID") || errorStr.includes("403") || errorStr.includes("401")) {
+        errorMessage = "The Gemini API key is currently restricted or invalid. This can happen if the key hasn't been fully activated yet or if there's a region restriction. \n\n**To fix this instantly:**\n1. Get your own free key from [Google AI Studio](https://aistudio.google.com/app/apikey)\n2. Paste it into the box below.";
+        setShowKeyInput(true);
+      } else if (errorStr.includes("429") || errorStr.toLowerCase().includes("busy")) {
         errorMessage = "The service is currently very busy. Please wait a few seconds and try again.";
       }
+      
       setMessages(prev => [...prev, { role: 'ai', text: errorMessage }]);
     } finally {
       setIsLoading(false);
@@ -428,7 +485,7 @@ const ChatWidget: React.FC = () => {
       {isOpen && (
         <div className={`
           w-[calc(100vw-32px)] sm:w-[400px] 
-          h-[min(650px,calc(100dvh-120px))]
+          h-[min(650px,calc(100vh-120px))] h-[min(650px,calc(100dvh-120px))]
           bg-white rounded-[2.5rem] shadow-[0_25px_70px_-15px_rgba(15,23,42,0.4)] 
           border border-white/40 flex flex-col overflow-hidden mb-5 
           transition-all duration-400 ease-[cubic-bezier(0.23,1,0.32,1)] 
@@ -471,17 +528,81 @@ const ChatWidget: React.FC = () => {
           <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 bg-[#f8fafc]/40 custom-scrollbar flex flex-col">
             {showSettings && (
               <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-gray-100 shadow-xl mb-6 animate-in zoom-in-95 duration-300">
-                <div className="grid grid-cols-2 gap-2">
-                  {LANGUAGES.map(lang => (
-                    <button 
-                      key={lang.code} 
-                      onClick={() => { setSelectedLang(lang); setShowSettings(false); setMessages([{role:'ai', text: lang.greeting}]); stopAudioSilently(); stopListening(); }}
-                      className={`px-3 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${selectedLang.code === lang.code ? 'bg-[#1e293b] text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
-                    >
-                      {lang.native} {selectedLang.code === lang.code && <Sparkles size={12} className="text-orange-400" />}
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Select Language</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {LANGUAGES.map(lang => (
+                        <button 
+                          key={lang.code} 
+                          onClick={() => { setSelectedLang(lang); setShowSettings(false); setMessages([{role:'ai', text: lang.greeting}]); stopAudioSilently(); stopListening(); }}
+                          className={`px-3 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${selectedLang.code === lang.code ? 'bg-[#1e293b] text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100'}`}
+                        >
+                          {lang.native} {selectedLang.code === lang.code && <Sparkles size={12} className="text-orange-400" />}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-gray-100">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Custom API Key (Failsafe)</p>
+                    <div className="flex gap-2">
+                      <input 
+                        type="password"
+                        value={customApiKey}
+                        onChange={(e) => setCustomApiKey(e.target.value)}
+                        placeholder="AIza..."
+                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-100 rounded-lg text-xs outline-none focus:border-orange-200"
+                      />
+                      <button 
+                        onClick={saveCustomKey}
+                        className="px-3 py-2 bg-[#1e293b] text-white rounded-lg text-xs font-bold hover:bg-orange-primary transition-all"
+                      >
+                        Save
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      {localStorage.getItem('CUSTOM_GEMINI_API_KEY') ? (
+                        <button 
+                          onClick={clearCustomKey}
+                          className="text-[10px] text-red-500 font-bold hover:underline"
+                        >
+                          Clear Custom Key
+                        </button>
+                      ) : (
+                        <div />
+                      )}
+                      <button 
+                        onClick={() => { checkKey(); alert("Connection check completed. Check console for details."); }}
+                        className="text-[10px] text-navy font-bold hover:underline"
+                      >
+                        Check Connection
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              </div>
+            )}
+            
+            {showKeyInput && !showSettings && (
+              <div className="bg-orange-50 border border-orange-100 p-4 rounded-2xl mb-4 animate-in slide-in-from-top-2">
+                <p className="text-xs font-bold text-orange-800 mb-3">Enter your own Gemini API Key to fix the connection:</p>
+                <div className="flex gap-2">
+                  <input 
+                    type="password"
+                    value={customApiKey}
+                    onChange={(e) => setCustomApiKey(e.target.value)}
+                    placeholder="AIza..."
+                    className="flex-1 px-3 py-2 bg-white border border-orange-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-orange-500/20"
+                  />
+                  <button 
+                    onClick={saveCustomKey}
+                    className="px-4 py-2 bg-orange-600 text-white rounded-lg text-xs font-bold hover:bg-orange-700 transition-all"
+                  >
+                    Connect
+                  </button>
+                </div>
+                <p className="text-[10px] text-orange-600 mt-2">Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline">Google AI Studio</a></p>
               </div>
             )}
             <div className="flex-1 space-y-6">

@@ -113,8 +113,9 @@ const SchemeDetails: React.FC = () => {
                     <Building2 size={24} />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Ministry</div>
-                    <div className="text-navy font-bold">{scheme.ministry}</div>
+                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Department</div>
+                    <div className="text-navy font-bold">{scheme.departmentName}</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">({scheme.ministry})</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -122,8 +123,8 @@ const SchemeDetails: React.FC = () => {
                     <Calendar size={24} />
                   </div>
                   <div>
-                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Expires On</div>
-                    <div className="text-navy font-bold">{scheme.expiryDate || 'N/A'}</div>
+                    <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1">Timeline</div>
+                    <div className="text-navy font-bold">{scheme.startDate} — {scheme.expiryDate || 'N/A'}</div>
                   </div>
                 </div>
               </div>

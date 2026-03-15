@@ -11,7 +11,7 @@ export const searchSchemesAI = async (query: string) => {
   const currentDate = new Date().toISOString().split('T')[0]; // e.g., 2026-03-08
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3-flash-preview',
       contents: `Current Date: ${currentDate}. Search Query: "${query}". Identify all relevant active official government schemes.`,
       config: {
         systemInstruction: `You are the "Gov-Smart Navigator". 
@@ -22,8 +22,9 @@ export const searchSchemesAI = async (query: string) => {
           title: s.title, 
           description: s.description, 
           category: s.category,
-          updatedAt: s.updatedAt,
-          expiryDate: s.expiryDate || 'N/A'
+          departmentName: s.departmentName,
+          startDate: s.startDate,
+          expiryDate: s.expiryDate
         })))}
         
         RULES:
@@ -75,7 +76,7 @@ export const getAIRecommendations = async (profile: any) => {
   const currentDate = new Date().toISOString().split('T')[0];
   try {
     const response = await generateContentWithRetry({
-      model: 'gemini-flash-latest',
+      model: 'gemini-3-flash-preview',
       contents: `Current Date: ${currentDate}. CITIZEN PROFILE: ${JSON.stringify(profile)}. Find every official scheme they qualify for.`,
       config: {
         systemInstruction: `You are the "Gov-Smart Eligibility Engine". 
@@ -86,8 +87,9 @@ export const getAIRecommendations = async (profile: any) => {
           title: s.title, 
           category: s.category,
           eligibility: s.eligibility,
-          updatedAt: s.updatedAt,
-          expiryDate: s.expiryDate || 'N/A'
+          departmentName: s.departmentName,
+          startDate: s.startDate,
+          expiryDate: s.expiryDate
         })))}
 
         STRICT MATCHING RULES:

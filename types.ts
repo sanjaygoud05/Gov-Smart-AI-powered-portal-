@@ -5,13 +5,15 @@ export interface Scheme {
   description: string;
   category: SchemeCategory;
   level: 'Central' | 'State';
+  departmentName: string; // User requested "Department Name"
   ministry: string;
   updatedAt: string;
-  expiryDate?: string; // ISO format YYYY-MM-DD or 'N/A'
+  startDate: string; // User requested "Start Date"
+  expiryDate: string; // User requested "End Date"
   objectives: string[];
-  benefits: string[];
-  eligibility: string[];
-  documents: string[];
+  benefits: string[]; // User requested "Benefits Provided"
+  eligibility: string[]; // User requested "Eligibility Criteria"
+  documents: string[]; // User requested "Required Documents"
   howToApply: string[];
   applicationUrl: string;
   faqs: { question: string; answer: string }[];

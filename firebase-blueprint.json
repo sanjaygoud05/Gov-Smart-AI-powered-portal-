@@ -17,12 +17,33 @@
         "created_at": { "type": "string", "format": "date-time", "description": "Timestamp when profile was created" }
       },
       "required": ["email", "created_at"]
+    },
+    "Scheme": {
+      "title": "Government Scheme",
+      "description": "Stores detailed information about a government scheme",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the scheme" },
+        "title": { "type": "string", "description": "Name of the scheme" },
+        "departmentName": { "type": "string", "description": "Department responsible for the scheme" },
+        "description": { "type": "string", "description": "Detailed description of the scheme" },
+        "eligibility": { "type": "array", "items": { "type": "string" }, "description": "Eligibility criteria" },
+        "startDate": { "type": "string", "format": "date", "description": "Official start date of the scheme" },
+        "expiryDate": { "type": "string", "format": "date", "description": "Official end date of the scheme" },
+        "benefits": { "type": "array", "items": { "type": "string" }, "description": "Benefits provided by the scheme" },
+        "documents": { "type": "array", "items": { "type": "string" }, "description": "Required documents for application" }
+      },
+      "required": ["id", "title", "departmentName", "description", "eligibility", "startDate", "expiryDate", "benefits", "documents"]
     }
   },
   "firestore": {
     "/profiles/{userId}": {
       "schema": "UserProfile",
       "description": "User profile document indexed by Firebase Auth UID"
+    },
+    "/schemes/{schemeId}": {
+      "schema": "Scheme",
+      "description": "Collection of government schemes"
     }
   }
 }

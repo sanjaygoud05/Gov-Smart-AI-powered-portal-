@@ -78,6 +78,11 @@ service cloud.firestore {
       allow update: if isOwner(userId) && isValidUserProfile(request.resource.data);
     }
 
+    match /schemes/{schemeId} {
+      allow read: if true; // Publicly readable
+      allow write: if false; // Only admin (manual) can write
+    }
+
     // Default deny
     match /{document=**} {
       allow read, write: if false;

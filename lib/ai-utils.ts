@@ -10,18 +10,38 @@ export async function generateContentWithRetry(
   maxRetries: number = 3,
   initialDelay: number = 1000
 ): Promise<GenerateContentResponse> {
-  const rawKey = process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.schemechecker || "";
-  const apiKey = (rawKey === "undefined" || rawKey === "null" || rawKey.includes("TODO")) ? "" : rawKey;
+  const rawKey = (import.meta.env.VITE_GEMINI_API_KEY) || 
+                 (process.env.GEMINI_API_KEY) || 
+                 (process.env.API_KEY) || 
+                 (window as any).GEMINI_API_KEY ||
+                 "";
+  
+  // Check for manually entered key in localStorage
+  const manualKey = typeof window !== 'undefined' ? localStorage.getItem('CUSTOM_GEMINI_API_KEY') : null;
+  const finalKey = manualKey || rawKey;
+  
+  // Debug log for troubleshooting (masked)
+  const maskedKey = finalKey && finalKey.length > 8 
+    ? `${finalKey.substring(0, 4)}...${finalKey.substring(finalKey.length - 4)}` 
+    : (finalKey ? "INVALID_FORMAT" : "MISSING");
+  console.log("Gov-Smart AI: API Key Detection (Utils):", maskedKey);
+                 
+  const apiKey = (finalKey === "undefined" || finalKey === "null" || finalKey.includes("TODO")) ? "" : finalKey;
   
   if (!apiKey) {
-    console.error("Gemini API Key is missing or invalid. Please ensure GEMINI_API_KEY or schemechecker is set in the environment.");
+    console.warn("Gov-Smart AI: Gemini API Key is missing. The chatbot will be offline. Please set GEMINI_API_KEY in Settings and re-publish.");
   }
 
   const ai = new GoogleGenAI({ apiKey });
   let lastError: any;
 
-  // Try the requested model, then fallback to gemini-flash-latest if it fails with 404
-  const modelsToTry = [params.model, 'gemini-flash-latest'].filter((m, i, a) => a.indexOf(m) === i);
+  // Try the requested model, then fallback to stable models
+  const modelsToTry = [
+    params.model, 
+    'gemini-3-flash-preview', 
+    'gemini-flash-latest',
+    'gemini-3.1-flash-lite-preview'
+  ].filter((m, i, a) => a && a.indexOf(m) === i);
 
   for (const model of modelsToTry) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -33,8 +53,13 @@ export async function generateContentWithRetry(
         return response;
       } catch (error: any) {
         lastError = error;
-        const errorMessage = error?.message || "";
-        console.error(`Gemini API Attempt (Model: ${model}, Attempt: ${attempt + 1}) failed:`, errorMessage);
+        const errorMessage = error?.message || String(error);
+        console.error(`Gemini API Attempt (Model: ${model}, Attempt: ${attempt + 1}) failed:`, error);
+        
+        // If it's a 403 (Invalid API Key), don't retry, just throw
+        if (errorMessage.includes("403") || errorMessage.toLowerCase().includes("api_key_invalid")) {
+          throw new Error("API_KEY_INVALID: The Gemini API key is invalid or restricted. Please check your AI Studio settings.");
+        }
         
         // If it's a 404 or model not found, don't retry this model, try the next one
         if (errorMessage.includes("404") || errorMessage.toLowerCase().includes("not found")) {

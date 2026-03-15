@@ -467,10 +467,15 @@ const FindSchemes: React.FC = () => {
                           <span className="px-3 py-1 bg-orange-100 text-orange-600 text-[10px] font-black uppercase rounded-lg">Updated</span>
                         )}
                       </div>
-                      <h3 className="text-xl font-bold text-navy mb-4 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">{scheme.title}</h3>
+                      <h3 className="text-xl font-bold text-navy mb-2 group-hover:text-orange-600 transition-colors line-clamp-2 leading-tight">{scheme.title}</h3>
+                      <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+                        <Globe size={12} /> {scheme.departmentName}
+                      </div>
                       <p className="text-sm text-gray-500 leading-relaxed line-clamp-3 mb-8 flex-grow">{scheme.description}</p>
                       <div className="flex items-center justify-between pt-6 border-t border-gray-50">
-                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Expires: {scheme.expiryDate || 'N/A'}</div>
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                          {scheme.startDate} — {scheme.expiryDate || 'N/A'}
+                        </div>
                         <div className="text-orange-500">
                           <ChevronRight size={20} />
                         </div>
