@@ -3,20 +3,41 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Share2, Calendar, Building2, CheckCircle2, ExternalLink, Bookmark, BookmarkCheck } from 'lucide-react';
 import { auth } from '../lib/firebase';
-import { MOCK_SCHEMES } from '../constants';
+import { fetchSchemeById } from '../services/schemeService';
+import { Scheme } from '../types';
 
 const SchemeDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const scheme = MOCK_SCHEMES.find(s => s.id === id);
+  const [scheme, setScheme] = useState<Scheme | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      const saved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
-      setIsSaved(saved.includes(id));
-    }
+    const loadScheme = async () => {
+      if (id) {
+        setLoading(true);
+        const data = await fetchSchemeById(id);
+        setScheme(data);
+        
+        const saved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
+        setIsSaved(saved.includes(id));
+        setLoading(false);
+      }
+    };
+    loadScheme();
   }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-gray-100 border-t-orange-primary rounded-full animate-spin"></div>
+          <span className="text-navy font-bold text-xs uppercase tracking-widest">Loading Scheme Details...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!scheme) {
     return (

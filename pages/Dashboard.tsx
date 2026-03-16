@@ -22,12 +22,14 @@ import {
 import { doc, getDoc } from 'firebase/firestore';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { MOCK_SCHEMES } from '../constants';
+import { fetchAllSchemes } from '../services/schemeService';
+import { Scheme } from '../types';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [recommendedSchemes, setRecommendedSchemes] = useState<Scheme[]>([]);
   const [savedCount, setSavedCount] = useState(0);
 
   useEffect(() => {
@@ -50,6 +52,9 @@ const Dashboard: React.FC = () => {
         handleFirestoreError(err, OperationType.GET, `profiles/${user.uid}`);
         setProfile({ first_name: user.displayName?.split(' ')[0] || 'User' });
       }
+      
+      const allSchemes = await fetchAllSchemes();
+      setRecommendedSchemes(allSchemes.slice(0, 3));
       
       const saved = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
       setSavedCount(saved.length);
@@ -175,7 +180,7 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              {MOCK_SCHEMES.slice(0, 3).map((scheme) => (
+              {recommendedSchemes.map((scheme) => (
                 <div 
                   key={scheme.id}
                   onClick={() => navigate(`/scheme/${scheme.id}`)}

@@ -239,7 +239,237 @@ const EXTENDED_SCHEMES = [
       '3. Submit application for work to Gram Panchayat.'
     ],
     applicationUrl: 'https://nrega.nic.in/',
-    faqs: [{ question: 'How many days of work?', answer: '100 days per household per year.' }]
+    faqs: [{ question: 'How often are payments?', answer: '100 days per household per year.' }]
+  },
+  {
+    id: "national-overseas-scholarship-pwd",
+    title: "National Overseas Scholarship For Students With Disabilities",
+    description: "A scholarship scheme by the Ministry of Social Justice & Empowerment for regular, full-time students with disabilities to obtain higher education viz., Master's degree, or Ph.D. courses from foreign universities, in one of the specified fields of study.",
+    category: "Education",
+    level: "Central",
+    departmentName: "Department of Empowerment of Persons with Disabilities",
+    ministry: "Ministry of Social Justice and Empowerment",
+    updatedAt: "17 Mar 2025",
+    startDate: "2014-01-01",
+    expiryDate: "2030-12-31",
+    objectives: [
+      "To provide financial assistance to students with disabilities for pursuing higher education abroad.",
+      "To empower persons with disabilities through international exposure and advanced education."
+    ],
+    benefits: [
+      "Annual Maintenance Allowance: $15,400 (USA/others) or 9,900 GBP (UK).",
+      "Contingency Allowance: $1,500 (USA/others) or 1,100 GBP (UK).",
+      "Equipment Allowance: ₹1,500.",
+      "Actual Tuition Fees, Visa Fees, Medical Insurance, and Air Passage (Economy class)."
+    ],
+    eligibility: [
+      "The applicant must be a student with a disability (40% or more).",
+      "Admitted into or received an unconditional offer for Masters/Ph.D. abroad.",
+      "Applicant must be 35 years or younger.",
+      "Total Family Income must not exceed ₹6 lakh per annum."
+    ],
+    documents: [
+      "Aadhaar Card",
+      "Disability Certificate",
+      "Income Certificate",
+      "Admission Letter from foreign university",
+      "Passport"
+    ],
+    howToApply: [
+      "1. Register on the NOS portal via socialjustice.gov.in.",
+      "2. Fill out the application form with academic and personal details.",
+      "3. Upload required documents including admission proof.",
+      "4. Submit the application for verification by the Ministry."
+    ],
+    applicationUrl: "https://nosmsje.gov.in/",
+    faqs: [
+      {
+        question: "Is there an age limit?",
+        answer: "Yes, the applicant must be 35 years or younger as on April 1st of the application year."
+      }
+    ]
+  },
+  {
+    id: "skilled-youth-startup-sikkim",
+    title: "Skilled Youth Startup Scheme (Sikkim)",
+    description: "Assists educated unemployed youth in Sikkim in setting up enterprises through loans with back-ended financial subsidy assistance.",
+    category: "Business",
+    level: "State",
+    departmentName: "Department of Commerce and Industries",
+    ministry: "Govt of Sikkim",
+    updatedAt: "17 Mar 2025",
+    startDate: "2020-01-01",
+    expiryDate: "2028-12-31",
+    objectives: [
+      "To encourage entrepreneurship among the youth of Sikkim.",
+      "To provide financial support for starting small and medium enterprises."
+    ],
+    benefits: [
+      "Financial support through bank loans with a back-ended subsidy of 35% or 50%.",
+      "Maximum project cost up to ₹20 lakhs.",
+      "Mandatory Entrepreneur Development Training provided.",
+      "Preference for Persons with Disabilities (PwDs)."
+    ],
+    eligibility: [
+      "Must be an unemployed youth of Sikkim.",
+      "Must have a valid Sikkim Subject Certificate/Certificate of Identification.",
+      "Minimum educational qualification: Class 5 pass.",
+      "Age: 18 to 40 years."
+    ],
+    documents: [
+      "Sikkim Subject Certificate / COI",
+      "Unemployment Certificate",
+      "Project Report",
+      "Educational Certificates"
+    ],
+    howToApply: [
+      "1. Approach the District Industries Center (DIC) in your district.",
+      "2. Submit the project proposal and application form.",
+      "3. Attend the interview/screening committee meeting.",
+      "4. After approval, the bank will sanction the loan with subsidy support."
+    ],
+    applicationUrl: "https://sikkim.gov.in/",
+    faqs: [
+      {
+        question: "What is the maximum project cost?",
+        answer: "The scheme supports projects up to ₹20 lakhs."
+      }
+    ]
+  },
+  {
+    id: "rmewf-medical-ex-servicemen",
+    title: "RMEWF - Financial Assistance For Medical Treatment",
+    description: "Provides financial assistance to non-pensioner Ex-Servicemen/widows of ranks up to Havildar/equivalent to meet routine medical expenses.",
+    category: "Health",
+    level: "Central",
+    departmentName: "Kendriya Sainik Board",
+    ministry: "Ministry of Defence",
+    updatedAt: "17 Mar 2025",
+    startDate: "2011-04-01",
+    expiryDate: "2035-12-31",
+    objectives: [
+      "To provide health security to non-pensioner ex-servicemen.",
+      "To alleviate medical expense burden for retired soldiers in lower ranks."
+    ],
+    benefits: [
+      "Financial assistance up to a maximum of ₹30,000 per year."
+    ],
+    eligibility: [
+      "Applicant must be a non-pensioner ESM (Ex-Servicemen) or his widow.",
+      "Rank: Havildar/equivalent and below.",
+      "Must be recommended by respective Zila Sainik Board (ZSB).",
+      "Expenditure must be incurred at recognized government hospitals."
+    ],
+    documents: [
+      "Discharge Book",
+      "Identity Card issued by ZSB",
+      "Medical Bills and Discharge Summary",
+      "Non-pensioner certificate"
+    ],
+    howToApply: [
+      "1. Download the application form from ksb.gov.in.",
+      "2. Submit the completed form to your respective Zila Sainik Board.",
+      "3. The KSB will process the claim and transfer the amount via DBT."
+    ],
+    applicationUrl: "https://ksb.gov.in/",
+    faqs: [
+      {
+        question: "Is it available for officers?",
+        answer: "No, this specific assistance is for ranks up to Havildar and equivalent."
+      }
+    ]
+  },
+  {
+    id: "post-matric-scholarship-pwd",
+    title: "Post Matric Scholarship For Students With Disabilities",
+    description: "Scholarship for students with disabilities pursuing post-matric qualifications (Class 11 to Master's degree) from recognized universities/colleges.",
+    category: "Education",
+    level: "Central",
+    departmentName: "Department of Empowerment of Persons with Disabilities",
+    ministry: "Ministry of Social Justice and Empowerment",
+    updatedAt: "17 Mar 2025",
+    startDate: "2018-01-01",
+    expiryDate: "2030-12-31",
+    objectives: [
+      "To support students with disabilities in their post-matric education.",
+      "To reduce the financial barrier for higher studies for persons with disabilities."
+    ],
+    benefits: [
+      "Maintenance Allowance: Up to ₹1,600 (Hostellers) or ₹750 (Day Scholars) per month.",
+      "Disability Allowances: Up to ₹4,000 per annum.",
+      "Reimbursement of compulsory non-refundable fees.",
+      "Book Allowance: ₹1,500 per annum."
+    ],
+    eligibility: [
+      "Student with a disability (40% or more).",
+      "Pursuing a post-matric qualification (Class 11 to Master's degree).",
+      "Family income ≤ ₹2.5 Lakh per annum.",
+      "Admitted to a recognized institution."
+    ],
+    documents: [
+      "Disability Certificate",
+      "Income Certificate",
+      "Previous Class Marksheet",
+      "Fee Receipt"
+    ],
+    howToApply: [
+      "1. Apply through the National Scholarship Portal (scholarships.gov.in).",
+      "2. Select the Department of Empowerment of Persons with Disabilities.",
+      "3. Register and fill in the application form.",
+      "4. Submit for institute and state level verification."
+    ],
+    applicationUrl: "https://scholarships.gov.in/",
+    faqs: [
+      {
+        question: "What is the income limit?",
+        answer: "Annual family income should be less than or equal to ₹2.5 Lakh."
+      }
+    ]
+  },
+  {
+    id: "skill-loan-scheme",
+    title: "Skill Loan Scheme",
+    description: "Institutional credit for individuals pursuing skill development courses aligned with National Occupations Standards.",
+    category: "Finance",
+    level: "Central",
+    departmentName: "National Skill Development Corporation (NSDC)",
+    ministry: "Ministry of Skill Development and Entrepreneurship",
+    updatedAt: "17 Mar 2025",
+    startDate: "2015-07-15",
+    expiryDate: "2030-12-31",
+    objectives: [
+      "To provide affordable credit for skill development.",
+      "To support the Skill India mission by enabling youth to take up training."
+    ],
+    benefits: [
+      "Loan amount: ₹5,000 to ₹1,50,000.",
+      "Interest Rate: Base rate (MCLR) + 1.5%.",
+      "Repayment period: Up to 7 years.",
+      "No collateral or third-party guarantee required."
+    ],
+    eligibility: [
+      "Admission in a course run by ITIs, Polytechnics, or recognized schools/colleges.",
+      "Training partners affiliated with NSDC, Sector Skill Councils, or State Skill Missions."
+    ],
+    documents: [
+      "Aadhaar Card",
+      "Admission Proof",
+      "Fee structure for the skill course",
+      "KYC documents for the bank"
+    ],
+    howToApply: [
+      "1. Identify a course in an NSDC-affiliated training center.",
+      "2. Approach any public sector bank or select private banks.",
+      "3. Submit the admission proof and application for the Skill Loan.",
+      "4. The bank will verify and disburse the loan to the training provider."
+    ],
+    applicationUrl: "https://www.nsdcindia.org/",
+    faqs: [
+      {
+        question: "Is collateral needed?",
+        answer: "No, loans under this scheme do not require collateral or third-party guarantees."
+      }
+    ]
   }
 ];
 
@@ -285,7 +515,7 @@ export default function Admin() {
             <CheckCircle2 className="text-green-500 w-5 h-5 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="text-green-800 font-bold text-sm">Successfully Seeded!</h4>
-              <p className="text-green-600 text-xs mt-1">10 schemes have been uploaded to your Firestore database.</p>
+              <p className="text-green-600 text-xs mt-1">15 schemes have been uploaded to your Firestore database.</p>
             </div>
           </div>
         )}
@@ -326,7 +556,7 @@ service cloud.firestore {
           ) : (
             <>
               <Database className="w-5 h-5" />
-              Seed 10 Mock Schemes to Firestore
+              Seed 15 Mock Schemes to Firestore
             </>
           )}
         </button>

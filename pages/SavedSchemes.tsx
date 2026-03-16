@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Bookmark, ChevronLeft, ChevronRight, Search, Trash2, Clock, Zap, ArrowRight } from 'lucide-react';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
-import { MOCK_SCHEMES } from '../constants';
+import { fetchSchemeById } from '../services/schemeService';
 import { Scheme } from '../types';
 
 const SavedSchemes: React.FC = () => {
@@ -13,15 +13,23 @@ const SavedSchemes: React.FC = () => {
   const [savedSchemes, setSavedSchemes] = useState<Scheme[]>([]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
         navigate('/auth');
         return;
       }
 
       const savedIds = JSON.parse(localStorage.getItem('saved_schemes') || '[]');
-      const filtered = MOCK_SCHEMES.filter(s => savedIds.includes(s.id));
-      setSavedSchemes(filtered);
+      if (savedIds.length > 0) {
+        setLoading(true);
+        const fetchedSchemes = await Promise.all(
+          savedIds.map((id: string) => fetchSchemeById(id))
+        );
+        // Filter out any null results (if a scheme was deleted from DB but remains in localStorage)
+        setSavedSchemes(fetchedSchemes.filter((s): s is Scheme => s !== null));
+      } else {
+        setSavedSchemes([]);
+      }
       setLoading(false);
     });
 
