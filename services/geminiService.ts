@@ -1,7 +1,6 @@
-
 import { GoogleGenAI, Type, ThinkingLevel } from "@google/genai";
-import { MOCK_SCHEMES } from "../constants";
 import { generateContentWithRetry } from "../lib/ai-utils";
+import { fetchAllSchemes } from "../services/schemeService";
 
 /**
  * Searches for relevant schemes using Gemini AI.
@@ -9,6 +8,8 @@ import { generateContentWithRetry } from "../lib/ai-utils";
  */
 export const searchSchemesAI = async (query: string) => {
   const currentDate = new Date().toISOString().split('T')[0]; // e.g., 2026-03-08
+  const dbSchemes = await fetchAllSchemes();
+  
   try {
     const response = await generateContentWithRetry({
       model: 'gemini-3-flash-preview',
@@ -17,7 +18,7 @@ export const searchSchemesAI = async (query: string) => {
         systemInstruction: `You are the "Gov-Smart Navigator". 
         Your task is to identify relevant official government schemes from the provided database.
         
-        DATABASE: ${JSON.stringify(MOCK_SCHEMES.map(s => ({ 
+        DATABASE: ${JSON.stringify(dbSchemes.map(s => ({ 
           id: s.id, 
           title: s.title, 
           description: s.description, 
@@ -52,16 +53,16 @@ export const searchSchemesAI = async (query: string) => {
     const results = JSON.parse(text);
     
     const finalResults = results
-      .map((res: any) => MOCK_SCHEMES.find(s => s.id === res.id))
+      .map((res: any) => dbSchemes.find(s => s.id === res.id))
       .filter(Boolean);
     
-    return finalResults.length > 0 ? finalResults : MOCK_SCHEMES.filter(s => 
+    return finalResults.length > 0 ? finalResults : dbSchemes.filter(s => 
       s.title.toLowerCase().includes(query.toLowerCase()) || 
       s.description.toLowerCase().includes(query.toLowerCase())
     );
   } catch (error) {
     console.error("AI Search Error:", error);
-    return MOCK_SCHEMES.filter(s => 
+    return dbSchemes.filter(s => 
       s.title.toLowerCase().includes(query.toLowerCase()) || 
       s.description.toLowerCase().includes(query.toLowerCase())
     );
@@ -74,6 +75,8 @@ export const searchSchemesAI = async (query: string) => {
  */
 export const getAIRecommendations = async (profile: any) => {
   const currentDate = new Date().toISOString().split('T')[0];
+  const dbSchemes = await fetchAllSchemes();
+  
   try {
     const response = await generateContentWithRetry({
       model: 'gemini-3-flash-preview',
@@ -82,7 +85,7 @@ export const getAIRecommendations = async (profile: any) => {
         systemInstruction: `You are the "Gov-Smart Eligibility Engine". 
         Your goal is to match this citizen to ALL official government welfare programs they qualify for.
 
-        DATABASE (SCHEME ELIGIBILITY CRITERIA): ${JSON.stringify(MOCK_SCHEMES.map(s => ({ 
+        DATABASE (SCHEME ELIGIBILITY CRITERIA): ${JSON.stringify(dbSchemes.map(s => ({ 
           id: s.id, 
           title: s.title, 
           category: s.category,
@@ -113,10 +116,10 @@ export const getAIRecommendations = async (profile: any) => {
     const text = response.text || '[]';
     const recommendedIds = JSON.parse(text);
     
-    const matches = MOCK_SCHEMES.filter(s => recommendedIds.includes(s.id));
+    const matches = dbSchemes.filter(s => recommendedIds.includes(s.id));
     // If AI fails or returns empty, fallback to basic keyword/logic filter
     if (matches.length === 0) {
-      return MOCK_SCHEMES.filter(s => {
+      return dbSchemes.filter(s => {
         const desc = (s.title + s.description + s.eligibility.join(' ')).toLowerCase();
         const occ = (profile.occupation || '').toLowerCase();
         return occ && desc.includes(occ);
@@ -125,6 +128,6 @@ export const getAIRecommendations = async (profile: any) => {
     return matches;
   } catch (error) {
     console.error("AI Recommendation Error:", error);
-    return MOCK_SCHEMES.slice(0, 4);
+    return dbSchemes.slice(0, 4);
   }
 };

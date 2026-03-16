@@ -10,6 +10,7 @@ import ReactMarkdown from 'react-markdown';
 import { GoogleGenAI, Modality, ThinkingLevel } from "@google/genai";
 import { MOCK_SCHEMES } from '../constants';
 import { generateContentWithRetry, generateTTSWithRetry } from '../lib/ai-utils';
+import { fetchAllSchemes } from '../services/schemeService';
 
 type LanguageOption = {
   name: string;
@@ -420,7 +421,8 @@ const ChatWidget: React.FC = () => {
     stopAudioSilently();
 
     const schemeMatch = location.pathname.match(/\/scheme\/([^/]+)/);
-    const contextScheme = schemeMatch ? MOCK_SCHEMES.find(s => s.id === schemeMatch[1]) : null;
+    const dbSchemes = await fetchAllSchemes();
+    const contextScheme = schemeMatch ? dbSchemes.find(s => s.id === schemeMatch[1]) : null;
 
     try {
       const response = await generateContentWithRetry({
@@ -452,7 +454,7 @@ const ChatWidget: React.FC = () => {
           The user is currently viewing: ${contextScheme ? contextScheme.title : 'the main portal'}.
           
           AVAILABLE SCHEMES (Grounding Data):
-          ${MOCK_SCHEMES.map(s => `- ${s.title} (ID: ${s.id}): ${s.description.slice(0, 150)}... (Dept: ${s.departmentName}, Start: ${s.startDate}, End: ${s.expiryDate})`).join('\n')}
+          ${dbSchemes.map(s => `- ${s.title} (ID: ${s.id}): ${s.description.slice(0, 150)}... (Dept: ${s.departmentName}, Start: ${s.startDate}, End: ${s.expiryDate})`).join('\n')}
           
           RESPONSE FORMATTING:
           - Use **bold** for emphasis on important terms.

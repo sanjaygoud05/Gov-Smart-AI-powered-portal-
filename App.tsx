@@ -15,6 +15,7 @@ import Settings from './pages/Settings';
 import SavedSchemes from './pages/SavedSchemes';
 import Dashboard from './pages/Dashboard';
 import ChatWidget from './components/ChatWidget';
+import Admin from './pages/Admin';
 
 // Helper to scroll to top on route change
 const ScrollToTop = () => {
@@ -64,6 +65,7 @@ const App: React.FC = () => {
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/faqs" element={<FAQs />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin" element={<Admin />} />
 
               {/* Protected Routes - Require Authentication */}
               <Route path="/dashboard" element={
