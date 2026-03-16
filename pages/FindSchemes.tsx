@@ -5,8 +5,9 @@ import { Search, Filter, ChevronLeft, ChevronRight, Check, Sparkles, ChevronDown
 import { doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { MOCK_SCHEMES, CATEGORIES, INDIAN_STATES_UTS, OCCUPATIONS } from '../constants';
+import { CATEGORIES, INDIAN_STATES_UTS, OCCUPATIONS } from '../constants';
 import { searchSchemesAI, getAIRecommendations } from '../services/geminiService';
+import { fetchAllSchemes } from '../services/schemeService';
 import { UserProfile, Scheme } from '../types';
 
 const FindSchemes: React.FC = () => {
@@ -19,7 +20,8 @@ const FindSchemes: React.FC = () => {
   );
   
   // Browsing/Search state
-  const [schemes, setSchemes] = useState<any[]>(MOCK_SCHEMES);
+  const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [allSchemes, setAllSchemes] = useState<Scheme[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedCategories, setSelectedCategories] = useState<string[]>(searchParams.get('category') ? [searchParams.get('category')!] : []);
@@ -66,6 +68,17 @@ const FindSchemes: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const initializeData = async () => {
+      const data = await fetchAllSchemes();
+      if (data && data.length > 0) {
+        setAllSchemes(data);
+        setSchemes(data); // Set initial display
+      }
+    };
+    initializeData();
+  }, []);
+
   const isStepValid = () => {
       switch(step) {
           case 1: return !!(profile.age && profile.gender);
@@ -85,7 +98,7 @@ const FindSchemes: React.FC = () => {
                 setSchemes(results);
                 setLoading(false);
             } else {
-                let filtered = MOCK_SCHEMES;
+                let filtered = allSchemes;
                 if (selectedCategories.length > 0) {
                     filtered = filtered.filter(s => selectedCategories.includes(s.category));
                 }
